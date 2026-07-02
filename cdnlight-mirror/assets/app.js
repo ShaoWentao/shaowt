@@ -1,1 +1,12 @@
-console.log('starter');
+const state={category:'All'};
+async function loadData(){const res=await fetch('./data/site.json');return res.json();}
+function productCard(item){return `<article class="card" data-category="${item.group}"><div><small>${item.group}</small><h3>${item.name}</h3><p>${item.description}</p></div><a class="btn" href="${item.url}" target="_blank" rel="noopener">Original</a></article>`}
+function downloadRow(item){return `<div class="list-row"><b>${item.type}</b><div><strong>${item.title}</strong><br><span>${item.note}</span></div><a class="btn" href="${item.url}" target="_blank" rel="noopener">Original</a></div>`}
+function projectCard(item){return `<article class="card"><div><small>${item.type}</small><h3>${item.name}</h3><p>${item.location}</p><p>${item.note}</p></div><a class="btn" href="${item.url}" target="_blank" rel="noopener">Original</a></article>`}
+function contactCard(item){return `<article class="card"><small>${item.label}</small><h3>${item.title}</h3><p>${item.text}</p></article>`}
+function renderProducts(data){const wrap=document.querySelector('#productGrid');if(!wrap)return;const list=state.category==='All'?data.products:data.products.filter(p=>p.group===state.category);wrap.innerHTML=list.map(productCard).join('');}
+function renderFilters(data){const wrap=document.querySelector('#productFilters');if(!wrap)return;const groups=['All',...new Set(data.products.map(p=>p.group))];wrap.innerHTML=groups.map(g=>`<button class="filter-btn${g===state.category?' active':''}" data-group="${g}">${g}</button>`).join('');wrap.querySelectorAll('button').forEach(btn=>btn.addEventListener('click',()=>{state.category=btn.dataset.group;renderFilters(data);renderProducts(data);}));}
+function renderDownloads(data){const wrap=document.querySelector('#downloadList');if(wrap)wrap.innerHTML=data.downloads.map(downloadRow).join('');}
+function renderProjects(data){const wrap=document.querySelector('#projectGrid');if(wrap)wrap.innerHTML=data.projects.map(projectCard).join('');}
+function renderContact(data){const wrap=document.querySelector('#contactGrid');if(wrap)wrap.innerHTML=data.contact.map(contactCard).join('');}
+loadData().then(data=>{renderFilters(data);renderProducts(data);renderProjects(data);renderDownloads(data);renderContact(data);const el=document.querySelector('#updated');if(el)el.textContent=data.snapshotDate;});
