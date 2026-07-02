@@ -1,0 +1,71 @@
+name: Archive CDN Lighting Website
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Website base URL'
+        required: true
+        default: 'https://www.cdnlight.com/'
+      max_pages:
+        description: 'Maximum HTML pages to parse. Use 0 for unlimited.'
+        required: true
+        default: '3000'
+      delay:
+        description: 'Delay between requests, in seconds.'
+        required: true
+        default: '0.25'
+      commit_results:
+        description: 'Commit downloaded archive back to repository'
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r tools/cdnlight_archive/requirements.txt
+
+      - name: Crawl official website
+        run: |
+          python tools/cdnlight_archive/crawl_cdnlight.py \
+            --base "${{ inputs.base_url }}" \
+            --out cdnlight-official-archive \
+            --max-pages "${{ inputs.max_pages }}" \
+            --delay "${{ inputs.delay }}" \
+            --max-file-mb 95
+
+      - name: Show archive summary
+        if: always()
+        run: |
+          echo "Downloaded files:"
+          find cdnlight-official-archive -type f | wc -l || true
+          echo "Archive size:"
+          du -sh cdnlight-official-archive || true
+          echo "Large files over 95MB:"
+          find cdnlight-official-archive -type f -size +95M -print || true
+          echo "Failed URL preview:"
+          head -n 30 cdnlight-official-archive/failed-urls.csv || true
+
+      - name: Commit archive results
+        if: ${{ inputs.commit_results }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cdnlight-official-archive
+          git status --short
+          git commit -m "Archive CDN Lighting official website content" || echo "No changes to commit"
+          git push
