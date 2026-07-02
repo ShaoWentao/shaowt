@@ -3,11 +3,8 @@
 Product technical file crawler for CDN Lighting official website.
 
 This script focuses on product pages and downloadable technical files.
-It is intentionally separate from the full-site crawler so the product-file archive
-can be checked, repeated, and corrected independently.
-
-Run:
-python tools/cdnlight_archive/crawl_product_files.py --base https://www.cdnlight.com/ --out cdnlight-product-files --max-pages 5000
+It separates downloaded files, skipped large files, and broken links so the
+workflow can still complete and commit useful CSV indexes.
 """
 
 from __future__ import annotations
@@ -90,7 +87,7 @@ def classify_file(url: str, content_type: str = "") -> str:
         return "photometry"
     if ext in {".rfa", ".rvt", ".dwg", ".dxf", ".step", ".stp", ".skp"}:
         return "cad-bim"
-    if ext in {".pdf"}:
+    if ext == ".pdf":
         return "pdf"
     if ext in {".doc", ".docx"}:
         return "word"
@@ -177,7 +174,7 @@ def crawl(base: str, out_dir: Path, max_pages: int, delay: float, timeout: int, 
     base_netloc = urlparse(base).netloc.lower()
     session = requests.Session()
     session.headers.update({
-        "User-Agent": "CDNLightingProductFileCrawler/1.0 (+official internal archive)",
+        "User-Agent": "CDNLightingProductFileCrawler/1.1 (+official internal archive)",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
     })
 
@@ -186,7 +183,9 @@ def crawl(base: str, out_dir: Path, max_pages: int, delay: float, timeout: int, 
     seen_pages: set[str] = set()
     seen_files: set[str] = set()
     product_pages: list[dict] = []
+    link_rows: list[dict] = []
     file_rows: list[dict] = []
+    skipped: list[dict] = []
     failures: list[dict] = []
     max_bytes = max_file_mb * 1024 * 1024
 
@@ -224,22 +223,69 @@ def crawl(base: str, out_dir: Path, max_pages: int, delay: float, timeout: int, 
                 if not same_domain(link, base_netloc):
                     continue
                 if is_tech_file(link):
+                    link_rows.append({
+                        "product_key": product_key,
+                        "product_title": product_title,
+                        "product_page": page_url,
+                        "file_url": link,
+                        "file_type": classify_file(link),
+                    })
                     if link not in seen_files:
                         seen_files.add(link)
                         try:
                             file_response = session.get(link, timeout=timeout, stream=True, allow_redirects=True)
                             file_type = file_response.headers.get("content-type", "").split(";")[0].strip().lower()
+                            final_url = normalize_url(file_response.url)
+                            status = file_response.status_code
+                            content_length = file_response.headers.get("content-length")
+                            expected_bytes = int(content_length) if content_length and content_length.isdigit() else ""
+
+                            if status >= 400:
+                                failures.append({"url": link, "source_page": page_url, "kind": "file", "status": status, "error": "http error"})
+                                file_response.close()
+                                continue
+                            if isinstance(expected_bytes, int) and expected_bytes > max_bytes:
+                                skipped.append({
+                                    "product_key": product_key,
+                                    "product_title": product_title,
+                                    "product_page": page_url,
+                                    "file_url": link,
+                                    "final_url": final_url,
+                                    "status": status,
+                                    "content_type": file_type,
+                                    "bytes_count": expected_bytes,
+                                    "reason": f"larger than {max_file_mb}MB limit",
+                                })
+                                file_response.close()
+                                continue
+
                             local_path = local_file_path(out_dir, product_key, file_response.url, file_type)
                             local_path.parent.mkdir(parents=True, exist_ok=True)
                             total = 0
                             chunks: list[bytes] = []
+                            too_large = False
                             for chunk in file_response.iter_content(1024 * 128):
                                 if not chunk:
                                     continue
                                 total += len(chunk)
                                 if total > max_bytes:
-                                    raise RuntimeError(f"file larger than limit: {max_file_mb}MB")
+                                    too_large = True
+                                    break
                                 chunks.append(chunk)
+                            if too_large:
+                                skipped.append({
+                                    "product_key": product_key,
+                                    "product_title": product_title,
+                                    "product_page": page_url,
+                                    "file_url": link,
+                                    "final_url": final_url,
+                                    "status": status,
+                                    "content_type": file_type,
+                                    "bytes_count": total,
+                                    "reason": f"larger than {max_file_mb}MB limit",
+                                })
+                                continue
+
                             data = b"".join(chunks)
                             local_path.write_bytes(data)
                             file_rows.append({
@@ -247,10 +293,10 @@ def crawl(base: str, out_dir: Path, max_pages: int, delay: float, timeout: int, 
                                 "product_title": product_title,
                                 "product_page": page_url,
                                 "file_url": link,
-                                "final_url": normalize_url(file_response.url),
+                                "final_url": final_url,
                                 "file_type": classify_file(file_response.url, file_type),
                                 "content_type": file_type,
-                                "status": file_response.status_code,
+                                "status": status,
                                 "bytes_count": len(data),
                                 "local_path": local_path.as_posix(),
                             })
@@ -266,14 +312,18 @@ def crawl(base: str, out_dir: Path, max_pages: int, delay: float, timeout: int, 
             failures.append({"url": page_url, "source_page": source_page, "kind": "page", "status": "", "error": str(exc)})
 
     write_csv(out_dir / "product-pages.csv", product_pages, ["product_key", "product_title", "product_url", "source_page"])
+    write_csv(out_dir / "product-file-links.csv", link_rows, ["product_key", "product_title", "product_page", "file_url", "file_type"])
     write_csv(out_dir / "product-files.csv", file_rows, ["product_key", "product_title", "product_page", "file_url", "final_url", "file_type", "content_type", "status", "bytes_count", "local_path"])
+    write_csv(out_dir / "skipped-product-files.csv", skipped, ["product_key", "product_title", "product_page", "file_url", "final_url", "status", "content_type", "bytes_count", "reason"])
     write_csv(out_dir / "failed-product-files.csv", failures, ["url", "source_page", "kind", "status", "error"])
 
     print(f"Product pages found: {len(product_pages)}")
+    print(f"Product file links found: {len(link_rows)}")
     print(f"Product files downloaded: {len(file_rows)}")
+    print(f"Skipped large files: {len(skipped)}")
     print(f"Failures: {len(failures)}")
     print(f"Output folder: {out_dir}")
-    return 0 if not failures else 2
+    return 0
 
 
 def main() -> int:
