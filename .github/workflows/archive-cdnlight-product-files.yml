@@ -53,10 +53,16 @@ jobs:
         run: |
           echo "Product pages:"
           wc -l cdnlight-product-files/product-pages.csv || true
-          echo "Product files:"
+          echo "Product file links:"
+          wc -l cdnlight-product-files/product-file-links.csv || true
+          echo "Downloaded product files:"
           wc -l cdnlight-product-files/product-files.csv || true
+          echo "Skipped large files:"
+          wc -l cdnlight-product-files/skipped-product-files.csv || true
           echo "Archive size:"
           du -sh cdnlight-product-files || true
+          echo "Skipped preview:"
+          head -n 40 cdnlight-product-files/skipped-product-files.csv || true
           echo "Failed product file preview:"
           head -n 40 cdnlight-product-files/failed-product-files.csv || true
 
