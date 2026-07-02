@@ -1,0 +1,71 @@
+name: Archive CDN Lighting Product Files
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Website base URL'
+        required: true
+        default: 'https://www.cdnlight.com/'
+      max_pages:
+        description: 'Maximum pages to check'
+        required: true
+        default: '5000'
+      delay:
+        description: 'Delay between requests, in seconds'
+        required: true
+        default: '0.25'
+      commit_results:
+        description: 'Commit downloaded product files back to repository'
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  product-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r tools/cdnlight_archive/requirements.txt
+
+      - name: Download product technical files
+        run: |
+          python tools/cdnlight_archive/crawl_product_files.py \
+            --base "${{ inputs.base_url }}" \
+            --out cdnlight-product-files \
+            --max-pages "${{ inputs.max_pages }}" \
+            --delay "${{ inputs.delay }}" \
+            --max-file-mb 95
+
+      - name: Show product file summary
+        if: always()
+        run: |
+          echo "Product pages:"
+          wc -l cdnlight-product-files/product-pages.csv || true
+          echo "Product files:"
+          wc -l cdnlight-product-files/product-files.csv || true
+          echo "Archive size:"
+          du -sh cdnlight-product-files || true
+          echo "Failed product file preview:"
+          head -n 40 cdnlight-product-files/failed-product-files.csv || true
+
+      - name: Commit product file archive
+        if: ${{ inputs.commit_results }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cdnlight-product-files
+          git status --short
+          git commit -m "Archive CDN Lighting product technical files" || echo "No changes to commit"
+          git push
