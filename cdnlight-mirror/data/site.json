@@ -1,7 +1,44 @@
 {
   "snapshotDate": "2026-07-02",
-  "products": [],
-  "projects": [],
-  "downloads": [],
-  "contact": []
+  "products": [
+    {"group":"Interior Lighting","name":"Downlight","description":"Interior lighting product category.","url":"https://www.cdnlight.com/SeriesParameters/index.aspx?plcid=29"},
+    {"group":"Interior Lighting","name":"LED Strip","description":"Linear decorative and indirect lighting product family.","url":"https://www.cdnlight.com/SeriesParameters/index.aspx?plcid=29"},
+    {"group":"Interior Lighting","name":"Multiple Light","description":"Interior modular or multi-head lighting category.","url":"https://www.cdnlight.com/SeriesParameters/index.aspx?plcid=29"},
+    {"group":"Interior Lighting","name":"Linear Light","description":"Interior linear luminaire category.","url":"https://www.cdnlight.com/SeriesParameters/index.aspx?plcid=29"},
+    {"group":"Interior Lighting","name":"Wallwasher","description":"Wallwashing product family for vertical surface lighting.","url":"https://www.cdnlight.com/SeriesParameters/index.aspx?plcid=29"},
+    {"group":"Interior Lighting","name":"Spotlight","description":"Spotlighting family for accent and commercial lighting.","url":"https://www.cdnlight.com/SeriesParameters/index.aspx?plcid=29"},
+    {"group":"Interior Lighting","name":"Panel Light","description":"Panel lighting category for general illumination.","url":"https://www.cdnlight.com/SeriesParameters/index.aspx?plcid=29"},
+    {"group":"Exterior Lighting","name":"Linear Wallwasher","description":"Outdoor wallwashing product family.","url":"https://www.cdnlight.com/SeriesParameters/index.aspx?plcid=35"},
+    {"group":"Exterior Lighting","name":"In-ground Light","description":"Outdoor in-ground lighting category.","url":"https://www.cdnlight.com/SeriesParameters/index.aspx?plcid=35"},
+    {"group":"Exterior Lighting","name":"Bollard Light","description":"Outdoor bollard lighting category.","url":"https://www.cdnlight.com/SeriesParameters/index.aspx?plcid=35"},
+    {"group":"Decorative Lighting","name":"Decorative Lighting","description":"Decorative lighting category.","url":"https://www.cdnlight.com/SeriesParameters/index.aspx?plcid=36"},
+    {"group":"Smart Lighting","name":"Smart Lighting","description":"Smart lighting category.","url":"https://www.cdnlight.com/SeriesParameters/index.aspx?plcid=37"},
+    {"group":"Custom Lighting","name":"Custom Lighting","description":"Custom lighting product and service category.","url":"https://www.cdnlight.com/SeriesParameters/index.aspx?plcid=4"}
+  ],
+  "projects": [
+    {"type":"Hotel","name":"InterContinental Dubai Festival City","location":"Dubai, UAE","note":"Project reference listed on the homepage.","url":"https://www.cdnlight.com/Project/index.aspx"},
+    {"type":"Public Facility","name":"Sai Van Bridge","location":"Macau, China","note":"Project reference listed on the homepage.","url":"https://www.cdnlight.com/Project/index.aspx"},
+    {"type":"Shop & Mall","name":"ALAN MANCE KIA Showroom","location":"Australia","note":"Project reference listed on the homepage.","url":"https://www.cdnlight.com/Project/index.aspx"},
+    {"type":"Shop & Mall","name":"Xiaomi Auto Showroom","location":"China","note":"Project reference listed on the homepage.","url":"https://www.cdnlight.com/Project/index.aspx"},
+    {"type":"Public Facility","name":"Hong Kong-Zhuhai-Macau Bridge","location":"HK/Zhuhai/Mac, China","note":"Project reference listed on the homepage.","url":"https://www.cdnlight.com/Project/index.aspx"},
+    {"type":"Hotel","name":"Sheraton Dhaka","location":"Dhaka, Bangladesh","note":"Project reference listed on the homepage.","url":"https://www.cdnlight.com/Project/index.aspx"},
+    {"type":"Public Facility","name":"Big Air Shougang","location":"Beijing, China","note":"Project reference listed on the homepage.","url":"https://www.cdnlight.com/Project/index.aspx"}
+  ],
+  "downloads": [
+    {"type":"Catalogue","title":"Villa Lighting Design & Application Guide","note":"Download page item.","url":"https://www.cdnlight.com/Download/index.aspx"},
+    {"type":"Catalogue","title":"Project References","note":"Download page item.","url":"https://www.cdnlight.com/Download/index.aspx"},
+    {"type":"White Paper","title":"Fermat Optics System Technical White Paper-2","note":"Download page item.","url":"https://www.cdnlight.com/Download/index.aspx"},
+    {"type":"Catalogue","title":"Spotlight 02","note":"Download page item.","url":"https://www.cdnlight.com/Download/index.aspx"},
+    {"type":"Catalogue","title":"Spotlight 01","note":"Download page item.","url":"https://www.cdnlight.com/Download/index.aspx"},
+    {"type":"Catalogue","title":"Module 01","note":"Download page item.","url":"https://www.cdnlight.com/Download/index.aspx"},
+    {"type":"Catalogue","title":"Linear Light_01","note":"Download page item.","url":"https://www.cdnlight.com/Download/index.aspx"},
+    {"type":"Catalogue","title":"Inground Light_01","note":"Download page item.","url":"https://www.cdnlight.com/Download/index.aspx"},
+    {"type":"Catalogue","title":"Bollard Light_01","note":"Download page item.","url":"https://www.cdnlight.com/Download/index.aspx"},
+    {"type":"Catalogue","title":"Wall Light_03","note":"Download page item.","url":"https://www.cdnlight.com/Download/index.aspx"}
+  ],
+  "contact": [
+    {"label":"Telephone","title":"+86-752-533 3256","text":"Public telephone shown on the company website."},
+    {"label":"Email","title":"sales@cdnlighting.com.cn","text":"Public sales email shown on the company website."},
+    {"label":"Address","title":"Huizhou, Guangdong","text":"No. A17, Xianghe West Rd., Dongjiang Ind. Zone, Shuikou, Huizhou, Guangdong, China."}
+  ]
 }
