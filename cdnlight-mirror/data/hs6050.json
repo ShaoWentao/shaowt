@@ -38,21 +38,12 @@
     "luminaireEfficacy3000K36": "Approx. 65.1 lm/W based on 781 lm / 12W",
     "ugr": "UGR<6"
   },
-  "ledSourceData": {
+  "ledModule": {
     "lightSourceType": "LED(COB)",
     "numberOfLightSources": "1",
-    "ledSourceBrand": "To be supplied",
-    "ledPackage": "COB",
-    "ledSourcePower": "To be supplied separately from luminaire power",
-    "ledSourceLuminousFlux": "To be supplied separately from luminaire luminous flux",
-    "ledSourceEfficacy": "To be calculated from LED source flux and LED source power",
-    "ledSourceCct": "3000K / 3500K / 4000K",
-    "ledSourceCri": "Ra≥95",
-    "ledSourceR9": "To be supplied",
-    "ledSourceSdcm": "≤3",
-    "ledVoltageCurrent": "To be supplied",
-    "ledBinning": "To be supplied",
-    "lm80Tm21Reference": "To be supplied"
+    "cct": "3000K / 3500K / 4000K",
+    "cri": "Ra≥95",
+    "sdcm": "≤3"
   },
   "mechanicalData": {
     "cutOut": "Ø50 mm",
