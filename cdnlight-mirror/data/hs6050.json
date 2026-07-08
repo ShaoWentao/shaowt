@@ -1,0 +1,125 @@
+{
+  "brand": "CDN Lighting",
+  "company": "Huizhou CDN Industrial Development Co., Ltd.",
+  "seriesName": "KARMA",
+  "category": "Downlight",
+  "modelNo": "HS6050",
+  "productName": "KARMA Downlight HS6050",
+  "articleStatus": "Sample SKU page generated from uploaded specification",
+  "edition": "Sample data extracted from HS6050(Max12W).pdf",
+  "contact": {
+    "web": "www.cdnlight.com",
+    "tel": "+86-752-533-3102",
+    "email": "sales@cdnlight.com",
+    "address": "No. 17, Xianghe West Rd., Dongjiang Ind. Zone, Shuikou, Huizhou, Guangdong 516005, China"
+  },
+  "basic": {
+    "mountingType": "Recessed",
+    "application": "Indoor settings including hotels and commercial spaces",
+    "material": "Aluminum",
+    "finish": "Powder coating",
+    "bodyColor": "Grey body",
+    "netWeight": "0.130 kg",
+    "safetyClass": "Class III",
+    "ipRating": "IP20"
+  },
+  "luminaireData": {
+    "wattage": "Max 12W",
+    "inputVoltage": "DC 36V",
+    "cct": "3000K / 3500K / 4000K",
+    "beamAngle": "24° / 36°",
+    "sdcm": "≤3",
+    "cri": "Ra≥95",
+    "dimmingOption": "Triac / 0-10V / DALI",
+    "dimmingDepth": "Not specified",
+    "luminaireFlux3000K24": "783 lm",
+    "luminaireFlux3000K36": "781 lm",
+    "luminaireEfficacy3000K24": "Approx. 65.3 lm/W based on 783 lm / 12W",
+    "luminaireEfficacy3000K36": "Approx. 65.1 lm/W based on 781 lm / 12W",
+    "ugr": "UGR<6"
+  },
+  "ledSourceData": {
+    "lightSourceType": "LED(COB)",
+    "numberOfLightSources": "1",
+    "ledSourceBrand": "To be supplied",
+    "ledPackage": "COB",
+    "ledSourcePower": "To be supplied separately from luminaire power",
+    "ledSourceLuminousFlux": "To be supplied separately from luminaire luminous flux",
+    "ledSourceEfficacy": "To be calculated from LED source flux and LED source power",
+    "ledSourceCct": "3000K / 3500K / 4000K",
+    "ledSourceCri": "Ra≥95",
+    "ledSourceR9": "To be supplied",
+    "ledSourceSdcm": "≤3",
+    "ledVoltageCurrent": "To be supplied",
+    "ledBinning": "To be supplied",
+    "lm80Tm21Reference": "To be supplied"
+  },
+  "mechanicalData": {
+    "cutOut": "Ø50 mm",
+    "visibleDiameter": "Ø57 mm",
+    "height": "90 mm",
+    "ceilingThickness": "8-20 mm",
+    "tilt": "30° vertical adjustment",
+    "rotation": "360° horizontal adjustment"
+  },
+  "opticalData": {
+    "system": "Fermat optical system",
+    "description": "Suppresses stray light, supports clear and rounded light spot, smooth color transition and reduced yellowing at the edges.",
+    "beamOptions": [
+      {
+        "beamAngle": "24°",
+        "wattage": "12W",
+        "imax": "4044 cd",
+        "totalFlux": "783 lm",
+        "ugr": "UGR<6",
+        "cone": [
+          {"h": "1 m", "e": "4043 lx", "d": "43 cm"},
+          {"h": "2 m", "e": "1011 lx", "d": "86 cm"},
+          {"h": "3 m", "e": "449 lx", "d": "129 cm"},
+          {"h": "4 m", "e": "252 lx", "d": "172 cm"}
+        ]
+      },
+      {
+        "beamAngle": "36°",
+        "wattage": "12W",
+        "imax": "2406 cd",
+        "totalFlux": "781 lm",
+        "ugr": "UGR<6",
+        "cone": [
+          {"h": "1 m", "e": "2396 lx", "d": "57 cm"},
+          {"h": "2 m", "e": "599 lx", "d": "115 cm"},
+          {"h": "3 m", "e": "266 lx", "d": "173 cm"},
+          {"h": "4 m", "e": "149 lx", "d": "231 cm"}
+        ]
+      }
+    ]
+  },
+  "description": [
+    "Family-oriented planning with cut-out size selections of 40mm, 50mm, 70mm, 90mm and 125mm, covering round, square and multiple installation forms.",
+    "Fermat optical system suppresses stray light and supports a clear, rounded light spot with smooth color transition.",
+    "360° eagle-eye drive mechanism allows one light body to work as both fixed downlight and adjustable downlight.",
+    "Round version uses an arc-shaped integrated reflector and frame design with black and white frame options.",
+    "Optical accessories can adjust light spot shape, UGR and other technical parameters."
+  ],
+  "accessories": [
+    {"code": "GH01-040", "name": "Honeycomb"},
+    {"code": "GH02-040", "name": "Elliptical Lens"},
+    {"code": "GH03-040", "name": "Soften Lens"},
+    {"code": "GH04-040", "name": "Clear Lens"},
+    {"code": "CP01F-40", "name": "Fixing Ring"}
+  ],
+  "variants": [
+    {"articleNo": "HS6050-930-24", "cct": "3000K", "beamAngle": "24°", "power": "12W", "flux": "783 lm", "cri": "Ra≥95", "ugr": "UGR<6"},
+    {"articleNo": "HS6050-930-36", "cct": "3000K", "beamAngle": "36°", "power": "12W", "flux": "781 lm", "cri": "Ra≥95", "ugr": "UGR<6"},
+    {"articleNo": "HS6050-935-24", "cct": "3500K", "beamAngle": "24°", "power": "12W", "flux": "To be supplied", "cri": "Ra≥95", "ugr": "UGR<6"},
+    {"articleNo": "HS6050-935-36", "cct": "3500K", "beamAngle": "36°", "power": "12W", "flux": "To be supplied", "cri": "Ra≥95", "ugr": "UGR<6"},
+    {"articleNo": "HS6050-940-24", "cct": "4000K", "beamAngle": "24°", "power": "12W", "flux": "To be supplied", "cri": "Ra≥95", "ugr": "UGR<6"},
+    {"articleNo": "HS6050-940-36", "cct": "4000K", "beamAngle": "36°", "power": "12W", "flux": "To be supplied", "cri": "Ra≥95", "ugr": "UGR<6"}
+  ],
+  "downloads": {
+    "datasheet": "datasheet-hs6050.html",
+    "ies": "To be supplied",
+    "ldt": "To be supplied",
+    "pdfSource": "HS6050(Max12W).pdf"
+  }
+}
