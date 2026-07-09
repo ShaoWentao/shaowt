@@ -1,4 +1,4 @@
-name: Fix IES Editor Home Links
+name: Fix IES Editor Navigation
 
 on:
   push:
@@ -10,24 +10,35 @@ permissions:
   contents: write
 
 jobs:
-  fix-home-links:
+  fix-navigation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
 
-      - name: Remove home links from IES editor
+      - name: Remove home and generate links from IES editor
         run: |
           set -e
           python3 - <<'PY'
           from pathlib import Path
-          path = Path('ies-editor/index.html')
-          text = path.read_text(encoding='utf-8')
+
+          index_path = Path('ies-editor/index.html')
+          text = index_path.read_text(encoding='utf-8')
           text = text.replace('<a class="brand" href="../"><span class="mark">IES</span><span><strong>IES Editor</strong><span>Browser photometric file tool</span></span></a>', '<div class="brand"><span class="mark">IES</span><span><strong>IES Editor</strong><span>Browser photometric file tool</span></span></div>')
-          text = text.replace('<nav class="nav"><a href="../">Home</a><a href="#generator">Generate</a><a href="#preview">Preview</a></nav>', '<nav class="nav"><a href="#generator">Generate</a><a href="#preview">Preview</a></nav>')
-          text = text.replace("if (nav[0]) nav[0].textContent = isZh ? '首页' : 'Home';\n    if (nav[1]) nav[1].textContent = isZh ? '生成' : 'Generate';\n    if (nav[2]) nav[2].textContent = isZh ? '预览' : 'Preview';", "if (nav[0]) nav[0].textContent = isZh ? '生成' : 'Generate';\n    if (nav[1]) nav[1].textContent = isZh ? '预览' : 'Preview';")
-          path.write_text(text, encoding='utf-8')
+          text = text.replace('<nav class="nav"><a href="../">Home</a><a href="#generator">Generate</a><a href="#preview">Preview</a></nav>', '<nav class="nav"><a href="#preview">Preview</a></nav>')
+          text = text.replace('<nav class="nav"><a href="#generator">Generate</a><a href="#preview">Preview</a></nav>', '<nav class="nav"><a href="#preview">Preview</a></nav>')
+          text = text.replace("if (nav[0]) nav[0].textContent = isZh ? '首页' : 'Home';\n    if (nav[1]) nav[1].textContent = isZh ? '生成' : 'Generate';\n    if (nav[2]) nav[2].textContent = isZh ? '预览' : 'Preview';", "if (nav[0]) nav[0].textContent = isZh ? '预览' : 'Preview';")
+          text = text.replace("if (nav[0]) nav[0].textContent = isZh ? '生成' : 'Generate';\n    if (nav[1]) nav[1].textContent = isZh ? '预览' : 'Preview';", "if (nav[0]) nav[0].textContent = isZh ? '预览' : 'Preview';")
+          index_path.write_text(text, encoding='utf-8')
+
+          i18n_path = Path('ies-editor/i18n.js')
+          i18n = i18n_path.read_text(encoding='utf-8')
+          i18n = i18n.replace("navGenerate: 'Generate',\n      navPreview: 'Preview',", "navPreview: 'Preview',")
+          i18n = i18n.replace("navGenerate: '生成',\n      navPreview: '预览',", "navPreview: '预览',")
+          i18n = i18n.replace("      if (href === '../' || href === './' || href === '/' || value === 'home' || value === '首页') link.remove();", "      if (href === '../' || href === './' || href === '/' || href === '#generator' || value === 'home' || value === '首页' || value === 'generate' || value === '生成') link.remove();")
+          i18n = i18n.replace("    if (navLinks[0]) navLinks[0].textContent = t(finalLang, 'navGenerate');\n    if (navLinks[1]) navLinks[1].textContent = t(finalLang, 'navPreview');", "    if (navLinks[0]) navLinks[0].textContent = t(finalLang, 'navPreview');")
+          i18n_path.write_text(i18n, encoding='utf-8')
           PY
 
       - name: Commit changes
@@ -35,10 +46,10 @@ jobs:
           set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ies-editor/index.html
+          git add ies-editor/index.html ies-editor/i18n.js
           if git diff --cached --quiet; then
             echo "No changes."
             exit 0
           fi
-          git commit -m "Remove home links from IES editor"
+          git commit -m "Remove generate navigation from IES editor"
           git push
