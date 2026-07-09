@@ -1,0 +1,44 @@
+name: Fix IES Editor Home Links
+
+on:
+  push:
+    paths:
+      - .github/workflows/fix-ies-editor-home.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix-home-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Remove home links from IES editor
+        run: |
+          set -e
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('ies-editor/index.html')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('<a class="brand" href="../"><span class="mark">IES</span><span><strong>IES Editor</strong><span>Browser photometric file tool</span></span></a>', '<div class="brand"><span class="mark">IES</span><span><strong>IES Editor</strong><span>Browser photometric file tool</span></span></div>')
+          text = text.replace('<nav class="nav"><a href="../">Home</a><a href="#generator">Generate</a><a href="#preview">Preview</a></nav>', '<nav class="nav"><a href="#generator">Generate</a><a href="#preview">Preview</a></nav>')
+          text = text.replace("if (nav[0]) nav[0].textContent = isZh ? '首页' : 'Home';\n    if (nav[1]) nav[1].textContent = isZh ? '生成' : 'Generate';\n    if (nav[2]) nav[2].textContent = isZh ? '预览' : 'Preview';", "if (nav[0]) nav[0].textContent = isZh ? '生成' : 'Generate';\n    if (nav[1]) nav[1].textContent = isZh ? '预览' : 'Preview';")
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit changes
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ies-editor/index.html
+          if git diff --cached --quiet; then
+            echo "No changes."
+            exit 0
+          fi
+          git commit -m "Remove home links from IES editor"
+          git push
