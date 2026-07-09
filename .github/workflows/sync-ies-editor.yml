@@ -1,0 +1,40 @@
+name: Sync IES Editor
+
+on:
+  push:
+    paths:
+      - .github/workflows/sync-ies-editor.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-ies-editor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Copy ies-editor from ShaoWentao.github.io
+        run: |
+          set -e
+          rm -rf /tmp/shaowentao-github-io
+          git clone --depth 1 https://github.com/ShaoWentao/ShaoWentao.github.io.git /tmp/shaowentao-github-io
+          rm -rf ies-editor
+          cp -R /tmp/shaowentao-github-io/ies-editor ./ies-editor
+
+      - name: Commit copied ies-editor folder
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ies-editor
+          if git diff --cached --quiet; then
+            echo "ies-editor is already up to date."
+            exit 0
+          fi
+          git commit -m "Copy ies-editor from ShaoWentao.github.io"
+          git push
