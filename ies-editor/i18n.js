@@ -9,7 +9,6 @@
       docTitle: 'IES Editor | Shao Wentao',
       brandTitle: 'IES Editor',
       brandSub: 'Browser photometric file tool',
-      navGenerate: 'Generate',
       navPreview: 'Preview',
       eyebrow: 'Photometric file generator',
       heroTitle: 'IES File Generator',
@@ -67,7 +66,6 @@
       docTitle: 'IES 编辑器 | Shao Wentao',
       brandTitle: 'IES 编辑器',
       brandSub: '浏览器端配光文件工具',
-      navGenerate: '生成',
       navPreview: '预览',
       eyebrow: '配光文件生成器',
       heroTitle: 'IES 文件生成器',
@@ -153,7 +151,7 @@
     document.querySelectorAll('.nav a').forEach((link) => {
       const href = link.getAttribute('href') || '';
       const value = (link.textContent || '').trim().toLowerCase();
-      if (href === '../' || href === './' || href === '/' || value === 'home' || value === '首页') link.remove();
+      if (href === '../' || href === './' || href === '/' || href === '#generator' || value === 'home' || value === '首页' || value === 'generate' || value === '生成') link.remove();
     });
   }
 
@@ -167,8 +165,7 @@
     setText('.brand span span', t(finalLang, 'brandSub'));
 
     const navLinks = document.querySelectorAll('.nav a');
-    if (navLinks[0]) navLinks[0].textContent = t(finalLang, 'navGenerate');
-    if (navLinks[1]) navLinks[1].textContent = t(finalLang, 'navPreview');
+    if (navLinks[0]) navLinks[0].textContent = t(finalLang, 'navPreview');
 
     setText('.eyebrow', t(finalLang, 'eyebrow'));
     setText('.hero h1', t(finalLang, 'heroTitle'));
