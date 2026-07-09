@@ -1,5 +1,6 @@
 (() => {
   const STORAGE_KEY = 'ies-editor-language';
+  const MANUAL_KEY = 'ies-editor-language-manual';
   const DEFAULT_LANG = 'en';
   const MAINLAND_CHINA = 'CN';
 
@@ -8,16 +9,13 @@
       docTitle: 'IES Editor | Shao Wentao',
       brandTitle: 'IES Editor',
       brandSub: 'Browser photometric file tool',
-      navHome: 'Home',
       navGenerate: 'Generate',
       navPreview: 'Preview',
-      navReport: 'IES Report',
       eyebrow: 'Photometric file generator',
       heroTitle: 'IES File Generator',
-      heroDesc: 'Generate a photometric file from luminaire parameters, preview Type C distribution curves, and export clean report pages when needed.',
+      heroDesc: 'Generate a photometric file from luminaire parameters, preview Type C distribution curves, and export IES or LDT files.',
       actionGenerate: 'Generate IES',
       actionPreview: 'Preview Curve',
-      actionReport: 'Open Report Tool',
       sectionTitle: 'Build photometric files with a cleaner workflow',
       generatorTitle: 'Generator Inputs',
       generatorBadge: 'CDN default',
@@ -43,31 +41,24 @@
       shapeSharp: 'Sharp teardrop',
       shapeVerySharp: 'Very sharp',
       surfaceShape: 'Luminous surface shape',
+      surfaceRectangular: 'Square / Rectangular',
+      surfaceCircular: 'Circular',
       length: 'Length of luminous surface (m)',
       width: 'Width of luminous surface (m)',
       diameter: 'Diameter of luminous surface (m)',
       height: 'Height of luminous surface (m)',
       notes: 'Description / keywords',
-      generateReport: 'Generate IES Report',
       download: 'Download IES',
       copy: 'Copy text',
       reset: 'Reset',
       upload: 'Open existing IES file',
-      helpNote: 'The indoor report pages are hidden on first load. They appear after Generate IES Report or after a file is uploaded and parsed successfully.',
+      helpNote: 'Generate, preview, copy and download IES/LDT files directly in the browser.',
       distribution: 'Distribution Preview',
       totalFlux: 'Total luminaire flux',
       peakCandela: 'Peak candela',
       efficacy: 'Estimated efficacy',
       beamFwhm: 'Beam angle FWHM',
       previewTitle: 'IES Preview',
-      reportTitle: 'IES INDOOR REPORT',
-      reportFile: 'PHOTOMETRIC FILENAME :',
-      descInfo: 'DESCRIPTION INFORMATION (From Photometric File)',
-      characteristics: 'CHARACTERISTICS',
-      candela: 'CANDELA TABULATION',
-      zonal: 'ZONAL LUMEN SUMMARY',
-      ugr: 'UGR TABLE - CORRECTED',
-      polar: 'POLAR GRAPH',
       languageLabel: 'Language',
       optionZh: '中文',
       optionEn: 'English'
@@ -76,16 +67,13 @@
       docTitle: 'IES 编辑器 | Shao Wentao',
       brandTitle: 'IES 编辑器',
       brandSub: '浏览器端配光文件工具',
-      navHome: '首页',
       navGenerate: '生成',
       navPreview: '预览',
-      navReport: 'IES 报告',
       eyebrow: '配光文件生成器',
       heroTitle: 'IES 文件生成器',
-      heroDesc: '根据灯具参数生成配光文件，预览 Type C 配光曲线，并在需要时导出清爽专业的报告页面。',
+      heroDesc: '根据灯具参数生成配光文件，预览 Type C 配光曲线，并直接导出 IES 或 LDT 文件。',
       actionGenerate: '生成 IES',
       actionPreview: '预览曲线',
-      actionReport: '打开报告工具',
       sectionTitle: '用更清晰的流程生成配光文件',
       generatorTitle: '生成参数',
       generatorBadge: 'CDN 默认',
@@ -111,31 +99,24 @@
       shapeSharp: '锐利水滴型',
       shapeVerySharp: '极窄型',
       surfaceShape: '发光面形状',
+      surfaceRectangular: '方形 / 矩形',
+      surfaceCircular: '圆形',
       length: '发光面长度 (m)',
       width: '发光面宽度 (m)',
       diameter: '发光面直径 (m)',
       height: '发光面高度 (m)',
       notes: '描述 / 关键词',
-      generateReport: '生成 IES 报告',
       download: '下载 IES',
       copy: '复制文本',
       reset: '重置',
       upload: '打开已有 IES 文件',
-      helpNote: '室内报告页面初始隐藏。点击生成 IES 报告，或上传文件并解析成功后，报告页面会自动展开。',
+      helpNote: '在浏览器中直接生成、预览、复制并下载 IES/LDT 文件。',
       distribution: '配光预览',
       totalFlux: '灯具总光通量',
       peakCandela: '峰值光强',
       efficacy: '估算光效',
       beamFwhm: '半峰光束角',
       previewTitle: 'IES 文本预览',
-      reportTitle: 'IES 室内照明报告',
-      reportFile: '配光文件名：',
-      descInfo: '说明信息（来自配光文件）',
-      characteristics: '特性参数',
-      candela: '光强表',
-      zonal: '区域光通量汇总',
-      ugr: 'UGR 表 - 修正后',
-      polar: '极坐标配光图',
       languageLabel: '语言',
       optionZh: '中文',
       optionEn: 'English'
@@ -156,18 +137,38 @@
     if (node) node.textContent = value;
   }
 
+  function setOption(selectId, value, textValue) {
+    const option = document.querySelector(`#${selectId} option[value="${value}"]`);
+    if (option) option.textContent = textValue;
+  }
+
+  function removeHomeNavigation() {
+    const brand = document.querySelector('.topbar .brand');
+    if (brand && brand.tagName.toLowerCase() === 'a') {
+      const replacement = document.createElement('div');
+      replacement.className = brand.className;
+      replacement.innerHTML = brand.innerHTML;
+      brand.replaceWith(replacement);
+    }
+    document.querySelectorAll('.nav a').forEach((link) => {
+      const href = link.getAttribute('href') || '';
+      const value = (link.textContent || '').trim().toLowerCase();
+      if (href === '../' || href === './' || href === '/' || value === 'home' || value === '首页') link.remove();
+    });
+  }
+
   function applyLanguage(lang) {
     const finalLang = lang === 'zh' ? 'zh' : 'en';
+    removeHomeNavigation();
     document.documentElement.lang = finalLang === 'zh' ? 'zh-CN' : 'en';
     document.title = t(finalLang, 'docTitle');
 
     setText('.brand strong', t(finalLang, 'brandTitle'));
     setText('.brand span span', t(finalLang, 'brandSub'));
+
     const navLinks = document.querySelectorAll('.nav a');
-    if (navLinks[0]) navLinks[0].textContent = t(finalLang, 'navHome');
-    if (navLinks[1]) navLinks[1].textContent = t(finalLang, 'navGenerate');
-    if (navLinks[2]) navLinks[2].textContent = t(finalLang, 'navPreview');
-    if (navLinks[3]) navLinks[3].textContent = t(finalLang, 'navReport');
+    if (navLinks[0]) navLinks[0].textContent = t(finalLang, 'navGenerate');
+    if (navLinks[1]) navLinks[1].textContent = t(finalLang, 'navPreview');
 
     setText('.eyebrow', t(finalLang, 'eyebrow'));
     setText('.hero h1', t(finalLang, 'heroTitle'));
@@ -175,7 +176,7 @@
     const heroActions = document.querySelectorAll('.hero-actions a');
     if (heroActions[0]) heroActions[0].textContent = t(finalLang, 'actionGenerate');
     if (heroActions[1]) heroActions[1].textContent = t(finalLang, 'actionPreview');
-    if (heroActions[2]) heroActions[2].textContent = t(finalLang, 'actionReport');
+
     setText('.section-title', t(finalLang, 'sectionTitle'));
     setText('aside.panel .panel-head h2', t(finalLang, 'generatorTitle'));
     setText('aside.panel .panel-head span', t(finalLang, 'generatorBadge'));
@@ -183,13 +184,8 @@
     setLabel('manufacturer', t(finalLang, 'manufacturer'));
     setLabel('serial', t(finalLang, 'serial'));
     setLabel('iesType', t(finalLang, 'iesType'));
-    const iesType = document.querySelector('#iesType');
-    if (iesType) {
-      const symmetric = iesType.querySelector('option[value="symmetric"]');
-      const fourPlane = iesType.querySelector('option[value="four-plane"]');
-      if (symmetric) symmetric.textContent = t(finalLang, 'typeSymmetric');
-      if (fourPlane) fourPlane.textContent = t(finalLang, 'typeFourPlane');
-    }
+    setOption('iesType', 'symmetric', t(finalLang, 'typeSymmetric'));
+    setOption('iesType', 'four-plane', t(finalLang, 'typeFourPlane'));
     setLabel('date', t(finalLang, 'date'));
     setLabel('ledCount', t(finalLang, 'ledNumber'));
     setLabel('singleFlux', t(finalLang, 'singleFlux'));
@@ -198,28 +194,17 @@
     setLabel('beamAngleC90', t(finalLang, 'beamAngleC90'));
     setLabel('power', t(finalLang, 'power'));
     setLabel('generationMode', t(finalLang, 'generationMode'));
-    const generationMode = document.querySelector('#generationMode');
-    if (generationMode) {
-      const simple = generationMode.querySelector('option[value="simple"]');
-      const advanced = generationMode.querySelector('option[value="advanced"]');
-      if (simple) simple.textContent = t(finalLang, 'modeSimple');
-      if (advanced) advanced.textContent = t(finalLang, 'modeAdvanced');
-    }
+    setOption('generationMode', 'simple', t(finalLang, 'modeSimple'));
+    setOption('generationMode', 'advanced', t(finalLang, 'modeAdvanced'));
     setLabel('distributionShape', t(finalLang, 'distributionShape'));
-    const distributionShape = document.querySelector('#distributionShape');
-    if (distributionShape) {
-      const lambertian = distributionShape.querySelector('option[value="lambertian"]');
-      const soft = distributionShape.querySelector('option[value="soft"]');
-      const standard = distributionShape.querySelector('option[value="standard"]');
-      const sharp = distributionShape.querySelector('option[value="sharp"]');
-      const verySharp = distributionShape.querySelector('option[value="very-sharp"]');
-      if (lambertian) lambertian.textContent = t(finalLang, 'shapeLambertian');
-      if (soft) soft.textContent = t(finalLang, 'shapeSoft');
-      if (standard) standard.textContent = t(finalLang, 'shapeStandard');
-      if (sharp) sharp.textContent = t(finalLang, 'shapeSharp');
-      if (verySharp) verySharp.textContent = t(finalLang, 'shapeVerySharp');
-    }
+    setOption('distributionShape', 'lambertian', t(finalLang, 'shapeLambertian'));
+    setOption('distributionShape', 'soft', t(finalLang, 'shapeSoft'));
+    setOption('distributionShape', 'standard', t(finalLang, 'shapeStandard'));
+    setOption('distributionShape', 'sharp', t(finalLang, 'shapeSharp'));
+    setOption('distributionShape', 'very-sharp', t(finalLang, 'shapeVerySharp'));
     setLabel('surfaceShape', t(finalLang, 'surfaceShape'));
+    setOption('surfaceShape', 'rectangular', t(finalLang, 'surfaceRectangular'));
+    setOption('surfaceShape', 'circular', t(finalLang, 'surfaceCircular'));
     setLabel('length', t(finalLang, 'length'));
     setLabel('width', t(finalLang, 'width'));
     setLabel('diameter', t(finalLang, 'diameter'));
@@ -228,10 +213,10 @@
     setLabel('upload', t(finalLang, 'upload'));
 
     const reportBtn = document.getElementById('reportBtn');
+    if (reportBtn) reportBtn.hidden = true;
     const downloadBtn = document.getElementById('downloadBtn');
     const copyBtn = document.getElementById('copyBtn');
     const resetBtn = document.getElementById('resetBtn');
-    if (reportBtn) reportBtn.textContent = t(finalLang, 'generateReport');
     if (downloadBtn) downloadBtn.textContent = t(finalLang, 'download');
     if (copyBtn) copyBtn.textContent = t(finalLang, 'copy');
     if (resetBtn) resetBtn.textContent = t(finalLang, 'reset');
@@ -247,36 +232,20 @@
     if (statLabels[2]) statLabels[2].textContent = t(finalLang, 'efficacy');
     if (statLabels[3]) statLabels[3].textContent = t(finalLang, 'beamFwhm');
 
-    setText('.report-title h2', t(finalLang, 'reportTitle'));
-    const reportFileLabel = document.querySelector('.report-title span');
-    const reportFileName = document.getElementById('reportFileName');
-    if (reportFileLabel && reportFileName && reportFileLabel.firstChild) {
-      reportFileLabel.firstChild.textContent = `${t(finalLang, 'reportFile')} `;
-    }
-    const reportHeadings = document.querySelectorAll('.report-page h3');
-    if (reportHeadings[0]) reportHeadings[0].textContent = t(finalLang, 'descInfo');
-    if (reportHeadings[1]) reportHeadings[1].textContent = t(finalLang, 'characteristics');
-    if (reportHeadings[2]) reportHeadings[2].textContent = t(finalLang, 'candela');
-    if (reportHeadings[3]) reportHeadings[3].textContent = t(finalLang, 'zonal');
-    if (reportHeadings[4]) reportHeadings[4].textContent = t(finalLang, 'ugr');
-    if (reportHeadings[5]) reportHeadings[5].textContent = t(finalLang, 'polar');
-
     const selector = document.getElementById('languageSelect');
     const label = document.getElementById('languageLabel');
     if (label) label.textContent = t(finalLang, 'languageLabel');
     if (selector) {
       selector.value = finalLang;
-      const zh = selector.querySelector('option[value="zh"]');
-      const en = selector.querySelector('option[value="en"]');
-      if (zh) zh.textContent = t(finalLang, 'optionZh');
-      if (en) en.textContent = t(finalLang, 'optionEn');
+      setOption('languageSelect', 'zh', t(finalLang, 'optionZh'));
+      setOption('languageSelect', 'en', t(finalLang, 'optionEn'));
     }
 
     window.iesEditorLanguage = finalLang;
     window.dispatchEvent(new CustomEvent('ies-language-change', { detail: { language: finalLang } }));
   }
 
-  async function fetchWithTimeout(url, timeoutMs = 1800) {
+  async function fetchWithTimeout(url, timeoutMs = 2200) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
@@ -291,6 +260,7 @@
   async function detectCountry() {
     const services = [
       async () => (await fetchWithTimeout('https://api.country.is/')).country,
+      async () => (await fetchWithTimeout('https://api.ip.sb/geoip')).country_code,
       async () => (await fetchWithTimeout('https://ipapi.co/json/')).country_code,
       async () => (await fetchWithTimeout('https://ipwho.is/?fields=country_code')).country_code
     ];
@@ -303,14 +273,21 @@
     return '';
   }
 
+  function browserPrefersChinese() {
+    const languages = Array.from(navigator.languages || [navigator.language || '']).map((item) => String(item).toLowerCase());
+    if (languages.some((item) => item === 'zh-cn' || item.startsWith('zh-hans'))) return true;
+    const timezone = (Intl.DateTimeFormat().resolvedOptions().timeZone || '').toLowerCase();
+    return timezone === 'asia/shanghai' || timezone === 'asia/chongqing' || timezone === 'asia/harbin';
+  }
+
   async function resolveInitialLanguage() {
+    const manual = localStorage.getItem(MANUAL_KEY) === '1';
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === 'zh' || saved === 'en') return saved;
+    if (manual && (saved === 'zh' || saved === 'en')) return saved;
     const country = await detectCountry();
     if (country === MAINLAND_CHINA) return 'zh';
     if (country) return 'en';
-    const browserLang = (navigator.language || '').toLowerCase();
-    return browserLang === 'zh-cn' || browserLang.startsWith('zh-hans') ? 'zh' : DEFAULT_LANG;
+    return browserPrefersChinese() ? 'zh' : DEFAULT_LANG;
   }
 
   function bindSwitcher() {
@@ -319,6 +296,7 @@
     selector.addEventListener('change', () => {
       const lang = selector.value === 'zh' ? 'zh' : 'en';
       localStorage.setItem(STORAGE_KEY, lang);
+      localStorage.setItem(MANUAL_KEY, '1');
       applyLanguage(lang);
     });
   }
@@ -327,6 +305,7 @@
 
   window.addEventListener('DOMContentLoaded', async () => {
     bindSwitcher();
+    removeHomeNavigation();
     const lang = await resolveInitialLanguage();
     applyLanguage(lang);
   });
