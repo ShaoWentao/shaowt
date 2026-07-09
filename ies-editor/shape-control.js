@@ -75,6 +75,32 @@
     document.body.appendChild(script);
   }
 
+  function removeHomeNavigation() {
+    const brand = document.querySelector('.topbar .brand');
+    if (brand) {
+      brand.removeAttribute('href');
+      brand.setAttribute('role', 'presentation');
+      brand.style.cursor = 'default';
+    }
+
+    document.querySelectorAll('.nav a').forEach((link) => {
+      const href = link.getAttribute('href') || '';
+      const text = (link.textContent || '').trim().toLowerCase();
+      if (href === '../' || href === './' || href === '/' || text === 'home' || text === '首页') {
+        link.remove();
+      }
+    });
+
+    const lang = currentLanguage();
+    const navLinks = document.querySelectorAll('.nav a');
+    if (navLinks[0]) navLinks[0].textContent = lang === 'zh' ? '生成' : 'Generate';
+    if (navLinks[1]) navLinks[1].textContent = lang === 'zh' ? '预览' : 'Preview';
+  }
+
+  function scheduleNoHomeFix() {
+    [0, 60, 160, 420].forEach((delay) => setTimeout(removeHomeNavigation, delay));
+  }
+
   function bind() {
     const shape = $('surfaceShape');
     const diameter = $('diameter');
@@ -82,6 +108,7 @@
     if (diameter) diameter.addEventListener('input', () => syncDimensionsFromShape(true));
     applyLanguage();
     syncDimensionsFromShape(false);
+    scheduleNoHomeFix();
     loadScriptOnce('generator-1deg.js', 'generatorOneDegree');
     loadScriptOnce('ldt-export.js', 'ldtExport');
   }
@@ -90,5 +117,6 @@
   window.addEventListener('ies-language-change', () => {
     applyLanguage();
     syncDimensionsFromShape(false);
+    scheduleNoHomeFix();
   });
 })();
