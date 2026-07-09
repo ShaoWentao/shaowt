@@ -84,8 +84,6 @@
     syncDimensionsFromShape(false);
     loadScriptOnce('generator-1deg.js', 'generatorOneDegree');
     loadScriptOnce('ldt-export.js', 'ldtExport');
-    loadScriptOnce('report-module-loader.js', 'reportModuleLoader');
-    loadScriptOnce('embedded-report-print-reset.js', 'embeddedReportPrintReset');
   }
 
   window.addEventListener('DOMContentLoaded', bind);
