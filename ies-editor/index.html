@@ -132,8 +132,8 @@
 <body>
 <div class="app">
   <header class="topbar">
-    <a class="brand" href="../"><span class="mark">IES</span><span><strong>IES Editor</strong><span>Browser photometric file tool</span></span></a>
-    <nav class="nav"><a href="../">Home</a><a href="#generator">Generate</a><a href="#preview">Preview</a></nav>
+    <div class="brand"><span class="mark">IES</span><span><strong>IES Editor</strong><span>Browser photometric file tool</span></span></div>
+    <nav class="nav"><a href="#generator">Generate</a><a href="#preview">Preview</a></nav>
     <div class="language-control"><label id="languageLabel" for="languageSelect">Language</label><select id="languageSelect" aria-label="Language"><option value="en">English</option><option value="zh">中文</option></select></div>
   </header>
   <main>
@@ -203,9 +203,8 @@
   function applyNoReportCopy() {
     const isZh = (window.iesEditorLanguage === 'zh') || document.documentElement.lang.toLowerCase().startsWith('zh');
     const nav = document.querySelectorAll('.nav a');
-    if (nav[0]) nav[0].textContent = isZh ? '首页' : 'Home';
-    if (nav[1]) nav[1].textContent = isZh ? '生成' : 'Generate';
-    if (nav[2]) nav[2].textContent = isZh ? '预览' : 'Preview';
+    if (nav[0]) nav[0].textContent = isZh ? '生成' : 'Generate';
+    if (nav[1]) nav[1].textContent = isZh ? '预览' : 'Preview';
     const heroDesc = document.querySelector('.hero p');
     if (heroDesc) heroDesc.textContent = isZh ? '根据灯具参数生成配光文件，预览 Type C 配光曲线，并直接导出 IES 或 LDT 文件。' : 'Generate a photometric file from luminaire parameters, preview Type C distribution curves, and export IES or LDT files.';
     const actions = document.querySelectorAll('.hero-actions a');
