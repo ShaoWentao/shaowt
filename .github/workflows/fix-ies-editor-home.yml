@@ -1,4 +1,4 @@
-name: Fix IES Editor Navigation
+name: Fix IES Editor UI
 
 on:
   push:
@@ -10,35 +10,70 @@ permissions:
   contents: write
 
 jobs:
-  fix-navigation:
+  fix-editor-ui:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: true
 
-      - name: Remove home and generate links from IES editor
+      - name: Remove home, generate navigation and upload feature
         run: |
           set -e
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           index_path = Path('ies-editor/index.html')
           text = index_path.read_text(encoding='utf-8')
           text = text.replace('<a class="brand" href="../"><span class="mark">IES</span><span><strong>IES Editor</strong><span>Browser photometric file tool</span></span></a>', '<div class="brand"><span class="mark">IES</span><span><strong>IES Editor</strong><span>Browser photometric file tool</span></span></div>')
           text = text.replace('<nav class="nav"><a href="../">Home</a><a href="#generator">Generate</a><a href="#preview">Preview</a></nav>', '<nav class="nav"><a href="#preview">Preview</a></nav>')
           text = text.replace('<nav class="nav"><a href="#generator">Generate</a><a href="#preview">Preview</a></nav>', '<nav class="nav"><a href="#preview">Preview</a></nav>')
+          text = re.sub(r'\n\s*<div class="upload"><div class="field"><label for="upload">.*?</label><input id="upload" type="file" accept="\.ies,\.ldt,\.txt"></div></div>', '', text)
+          text = text.replace('Generate, preview, copy and download IES/LDT files directly in the browser.', 'Generate, preview, copy and download IES/LDT files directly in the browser.')
           text = text.replace("if (nav[0]) nav[0].textContent = isZh ? '首页' : 'Home';\n    if (nav[1]) nav[1].textContent = isZh ? '生成' : 'Generate';\n    if (nav[2]) nav[2].textContent = isZh ? '预览' : 'Preview';", "if (nav[0]) nav[0].textContent = isZh ? '预览' : 'Preview';")
           text = text.replace("if (nav[0]) nav[0].textContent = isZh ? '生成' : 'Generate';\n    if (nav[1]) nav[1].textContent = isZh ? '预览' : 'Preview';", "if (nav[0]) nav[0].textContent = isZh ? '预览' : 'Preview';")
           index_path.write_text(text, encoding='utf-8')
 
           i18n_path = Path('ies-editor/i18n.js')
           i18n = i18n_path.read_text(encoding='utf-8')
+          i18n = i18n.replace("      upload: 'Open existing IES file',\n", '')
+          i18n = i18n.replace("      upload: '打开已有 IES 文件',\n", '')
+          i18n = i18n.replace("    setLabel('upload', t(finalLang, 'upload'));\n", '')
           i18n = i18n.replace("navGenerate: 'Generate',\n      navPreview: 'Preview',", "navPreview: 'Preview',")
           i18n = i18n.replace("navGenerate: '生成',\n      navPreview: '预览',", "navPreview: '预览',")
           i18n = i18n.replace("      if (href === '../' || href === './' || href === '/' || value === 'home' || value === '首页') link.remove();", "      if (href === '../' || href === './' || href === '/' || href === '#generator' || value === 'home' || value === '首页' || value === 'generate' || value === '生成') link.remove();")
           i18n = i18n.replace("    if (navLinks[0]) navLinks[0].textContent = t(finalLang, 'navGenerate');\n    if (navLinks[1]) navLinks[1].textContent = t(finalLang, 'navPreview');", "    if (navLinks[0]) navLinks[0].textContent = t(finalLang, 'navPreview');")
           i18n_path.write_text(i18n, encoding='utf-8')
+
+          app_path = Path('ies-editor/app.js')
+          app = app_path.read_text(encoding='utf-8')
+          upload_block = """  $('upload').addEventListener('change', (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        uploaded = parseIES(decodeIESBuffer(reader.result), file.name);
+        current = uploaded;
+        if (fields.generationMode) fields.generationMode.value = 'simple';
+        syncGenerationModeUI();
+        setUploadedFields(uploaded);
+        preview.textContent = uploaded.text;
+        $('fileName').textContent = file.name;
+        updateStats(uploaded);
+        buildReport(uploaded);
+      } catch (error) {
+        fields.notes.value = `Read failed: ${error.message || error}`;
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });"""
+          app = app.replace(upload_block, """  const uploadInput = $('upload');
+  if (uploadInput) {
+    uploadInput.addEventListener('change', () => {});
+  }""")
+          app_path.write_text(app, encoding='utf-8')
           PY
 
       - name: Commit changes
@@ -46,10 +81,10 @@ jobs:
           set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ies-editor/index.html ies-editor/i18n.js
+          git add ies-editor/index.html ies-editor/i18n.js ies-editor/app.js
           if git diff --cached --quiet; then
             echo "No changes."
             exit 0
           fi
-          git commit -m "Remove generate navigation from IES editor"
+          git commit -m "Remove upload feature from IES editor"
           git push
