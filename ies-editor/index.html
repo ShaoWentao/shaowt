@@ -205,8 +205,52 @@
     const report = document.getElementById('report');
     if (report) report.classList.add('hidden');
   }
+  function currentLanguage() {
+    const select = document.getElementById('languageSelect');
+    if (window.iesEditorLanguage === 'zh' || (select && select.value === 'zh') || document.documentElement.lang.toLowerCase().startsWith('zh')) return 'zh';
+    return 'en';
+  }
+  function syncCalculatorButton() {
+    const calcBtn = document.getElementById('calcBtn');
+    if (!calcBtn) return;
+    calcBtn.textContent = currentLanguage() === 'zh' ? '发送到照度计算器' : 'Send to Illuminance Calculator';
+    calcBtn.removeAttribute('disabled');
+  }
+  function sendCurrentIesToCalculator() {
+    const preview = document.getElementById('iesPreview');
+    const fileName = document.getElementById('fileName');
+    const serial = document.getElementById('serial');
+    const text = preview ? preview.textContent.trim() : '';
+    const safeName = (value) => String(value || 'luminaire').replace(/[^a-z0-9_-]+/gi, '-').replace(/^-+|-+$/g, '') || 'luminaire';
+    const payload = {
+      fileName: (fileName && fileName.textContent.trim()) || `${safeName(serial && serial.value)}.ies`,
+      text,
+      sentAt: Date.now()
+    };
+    if (!payload.text) {
+      alert(currentLanguage() === 'zh' ? '当前没有可发送的 IES 数据。' : 'No IES data is available to send.');
+      return;
+    }
+    try {
+      sessionStorage.setItem('interior-lighting-pending-ies', JSON.stringify(payload));
+    } catch (error) {
+      localStorage.setItem('interior-lighting-pending-ies', JSON.stringify(payload));
+    }
+    window.location.assign(new URL('../interior-lighting/?from=ies-editor', window.location.href).href);
+  }
   window.addEventListener('DOMContentLoaded', () => setTimeout(applyNoReportCopy, 30));
-  window.addEventListener('ies-language-change', () => setTimeout(applyNoReportCopy, 30));
+  window.addEventListener('DOMContentLoaded', () => setTimeout(syncCalculatorButton, 80));
+  window.addEventListener('ies-language-change', () => setTimeout(() => { applyNoReportCopy(); syncCalculatorButton(); }, 30));
+  document.addEventListener('change', (event) => {
+    if (event.target && event.target.id === 'languageSelect') setTimeout(syncCalculatorButton, 0);
+  });
+  document.addEventListener('click', (event) => {
+    const calcBtn = event.target && event.target.closest && event.target.closest('#calcBtn');
+    if (!calcBtn) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    sendCurrentIesToCalculator();
+  }, true);
 })();
 </script>
 <script defer src="../assets/visitor-counter.js"></script>
