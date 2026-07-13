@@ -48,6 +48,7 @@
       height: 'Height of luminous surface (m)',
       notes: 'Description / keywords',
       download: 'Download IES',
+      sendCalculator: 'Send to Illuminance Calculator',
       copy: 'Copy text',
       reset: 'Reset',
       upload: 'Open existing IES file',
@@ -122,6 +123,7 @@
   };
 
   function t(lang, key) {
+    if (lang === 'zh' && key === 'sendCalculator') return '发送到照度计算器';
     return (text[lang] && text[lang][key]) || text.en[key] || '';
   }
 
@@ -212,9 +214,11 @@
     const reportBtn = document.getElementById('reportBtn');
     if (reportBtn) reportBtn.hidden = true;
     const downloadBtn = document.getElementById('downloadBtn');
+    const calcBtn = document.getElementById('calcBtn');
     const copyBtn = document.getElementById('copyBtn');
     const resetBtn = document.getElementById('resetBtn');
     if (downloadBtn) downloadBtn.textContent = t(finalLang, 'download');
+    if (calcBtn) calcBtn.textContent = t(finalLang, 'sendCalculator');
     if (copyBtn) copyBtn.textContent = t(finalLang, 'copy');
     if (resetBtn) resetBtn.textContent = t(finalLang, 'reset');
     setText('.notes', t(finalLang, 'helpNote'));
