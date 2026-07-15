@@ -674,9 +674,10 @@
     const verticalAngles = nums.slice(i, i + verticalCount); i += verticalCount;
     const horizontalAngles = nums.slice(i, i + horizontalCount); i += horizontalCount;
     if (verticalCount <= 0 || horizontalCount <= 0 || nums.length - i < verticalCount * horizontalCount) throw new Error("Incomplete IES candela data.");
+    const candelaScale = Math.max(0, multiplier || 0) * (lumensPerLamp > 0 ? Math.max(1, lampCount || 1) * lumensPerLamp / 1000 : 1);
     const candela = [];
     for (let h = 0; h < horizontalCount; h += 1) {
-      candela.push(nums.slice(i, i + verticalCount).map((value) => Math.max(0, value * multiplier)));
+      candela.push(nums.slice(i, i + verticalCount).map((value) => Math.max(0, value * candelaScale)));
       i += verticalCount;
     }
     const keys = parseKeywords(lines);
@@ -907,7 +908,7 @@
 
   function unitData() {
     const imperial = $("units").value === "imperial";
-    return { imperial, dim: imperial ? "ft" : "m", illum: imperial ? "fc" : "lux", lpd: imperial ? "W/ft2" : "W/m2", areaFactor: imperial ? 10.7639 : 1 };
+    return { imperial, dim: imperial ? "ft" : "m", illum: imperial ? "fc" : "lux", lpd: imperial ? "W/ft2" : "W/m2" };
   }
 
   function scaleLayoutToRoom() {
@@ -1014,7 +1015,7 @@
     const targetQty = manualQty ? Math.round(n("targetQty", 0)) : 0;
     let cols = Math.max(1, Math.round(n("cols", 2)));
     let rows = Math.max(1, Math.round(n("rows", 4)));
-    const required = targetQty > 0 ? targetQty : flux > 0 && target > 0 ? Math.max(1, Math.ceil(target * area * unit.areaFactor / (flux * cu * llf))) : rows * cols;
+    const required = targetQty > 0 ? targetQty : flux > 0 && target > 0 ? Math.max(1, Math.ceil(target * area / (flux * cu * llf))) : rows * cols;
     const autoLayout = iesData && (targetQty > 0 || (target > 0 && flux > 0));
     if (autoLayout) {
       if (!manualQty && target > 0 && flux > 0) {
@@ -1038,7 +1039,7 @@
       $("rows").value = rows;
     }
     const qty = rows * cols;
-    const lumenAvg = flux > 0 ? qty * flux * cu * llf / area / unit.areaFactor : null;
+    const lumenAvg = flux > 0 ? qty * flux * cu * llf / area : null;
     const powerDensity = photometricData ? qty * Math.max(0, photometricData.power || 0) / area : null;
     const spacingX = Math.max(0.01, autoLayout ? length / Math.max(1, cols) : n("spacingX", length / Math.max(1, cols)));
     const spacingY = Math.max(0.01, autoLayout ? width / Math.max(1, rows) : n("spacingY", width / Math.max(1, rows)));
