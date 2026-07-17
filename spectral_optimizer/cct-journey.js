@@ -10,8 +10,44 @@
         const style = document.createElement('style');
         style.id = 'chromaticity-layout-fix';
         style.textContent = `
+            html,
+            body {
+                width: 100%;
+                height: auto;
+                min-height: 100%;
+                overflow-x: hidden;
+                overflow-y: auto !important;
+                overscroll-behavior-y: auto;
+            }
+
+            body {
+                position: static;
+                touch-action: pan-y;
+            }
+
+            #app-main {
+                align-items: start;
+                height: auto;
+                min-height: 0;
+                max-height: none;
+                overflow: visible;
+            }
+
+            .controls-panel {
+                position: static;
+                top: auto;
+                max-height: none;
+                overflow: visible;
+                align-self: start;
+            }
+
             .visualization-area {
                 min-width: 0;
+                height: auto;
+                min-height: 0;
+                max-height: none;
+                overflow: visible;
+                align-self: start;
             }
 
             .charts-row {
@@ -24,12 +60,16 @@
             .spd-panel,
             .cie-panel {
                 min-width: 0;
+                height: auto;
+                align-self: start;
                 padding: 18px;
+                overflow: hidden;
             }
 
             .canvas-wrapper {
                 position: relative;
                 width: 100%;
+                min-width: 0;
                 overflow: hidden;
             }
 
@@ -50,10 +90,6 @@
                 display: block;
                 width: 100%;
                 height: 100%;
-            }
-
-            .cie-panel {
-                align-self: start;
             }
 
             @media (max-width: 1100px) {
