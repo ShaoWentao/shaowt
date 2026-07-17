@@ -52,7 +52,7 @@
 
             .charts-row {
                 display: grid;
-                grid-template-columns: minmax(0, 1.65fr) minmax(340px, 0.85fr);
+                grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.85fr);
                 gap: 18px;
                 align-items: start;
             }
@@ -74,7 +74,11 @@
             }
 
             #canvas-wrapper {
-                height: clamp(320px, 42vw, 520px);
+                width: 100%;
+                height: auto;
+                aspect-ratio: 16 / 10;
+                min-height: 0;
+                max-height: none;
             }
 
             #cie-canvas-wrapper {
@@ -102,10 +106,6 @@
                     max-width: 680px;
                     justify-self: center;
                 }
-
-                #canvas-wrapper {
-                    height: clamp(300px, 56vw, 500px);
-                }
             }
 
             @media (max-width: 640px) {
@@ -115,7 +115,7 @@
                 }
 
                 #canvas-wrapper {
-                    height: 300px;
+                    aspect-ratio: 16 / 10;
                 }
             }
         `;
