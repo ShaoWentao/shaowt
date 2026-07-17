@@ -61,15 +61,19 @@
                 display: grid;
                 grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr);
                 gap: 18px;
-                align-items: start;
-                grid-auto-rows: max-content;
+                align-items: stretch;
             }
 
             .spd-panel,
             .cie-panel {
                 overflow: hidden;
-                align-self: start;
-                height: auto;
+                align-self: stretch;
+                height: 100%;
+            }
+
+            .spd-panel {
+                display: flex;
+                flex-direction: column;
             }
 
             .canvas-wrapper {
@@ -140,6 +144,13 @@
             @media (max-width: 1180px) {
                 .charts-row {
                     grid-template-columns: 1fr;
+                    align-items: start;
+                }
+
+                .spd-panel,
+                .cie-panel {
+                    height: auto;
+                    align-self: start;
                 }
 
                 .cie-panel {
@@ -151,39 +162,42 @@
         document.head.appendChild(style);
     }
 
-    function initPresetCollapse() {
+    function setupPresetsToggle() {
         if (typeof document === 'undefined') return;
-        const section = document.querySelector('.presets-section');
-        const buttons = section && section.querySelector('.preset-buttons');
-        const heading = section && section.querySelector('h3');
-        if (!section || !buttons || !heading || section.querySelector('.presets-toggle')) return;
 
-        const toggle = document.createElement('button');
-        toggle.type = 'button';
-        toggle.className = 'presets-toggle';
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.setAttribute('aria-controls', 'preset-buttons');
-        toggle.innerHTML = '<strong>快速预设 <span>Presets</span></strong><span class="presets-toggle-icon" aria-hidden="true">⌄</span>';
+        function mount() {
+            const section = document.querySelector('.presets-section');
+            const heading = section && section.querySelector('h3');
+            const buttons = section && section.querySelector('.preset-buttons');
+            if (!section || !heading || !buttons || section.querySelector('.presets-toggle')) return;
 
-        buttons.id = 'preset-buttons';
-        buttons.hidden = true;
-        heading.replaceWith(toggle);
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'presets-toggle';
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.setAttribute('aria-controls', 'preset-buttons');
+            toggle.innerHTML = '<strong>快速预设 <span>Presets</span></strong><span class="presets-toggle-icon" aria-hidden="true">⌄</span>';
 
-        toggle.addEventListener('click', function () {
-            const expanded = toggle.getAttribute('aria-expanded') === 'true';
-            toggle.setAttribute('aria-expanded', String(!expanded));
-            buttons.hidden = expanded;
-        });
+            buttons.id = 'preset-buttons';
+            buttons.hidden = true;
+            heading.replaceWith(toggle);
+
+            toggle.addEventListener('click', function () {
+                const expanded = toggle.getAttribute('aria-expanded') === 'true';
+                toggle.setAttribute('aria-expanded', String(!expanded));
+                buttons.hidden = expanded;
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', mount, { once: true });
+        } else {
+            mount();
+        }
     }
 
     injectLayoutFix();
-    if (typeof document !== 'undefined') {
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initPresetCollapse, { once: true });
-        } else {
-            initPresetCollapse();
-        }
-    }
+    setupPresetsToggle();
 
     function freezeScene(scene) {
         return Object.freeze(scene);
