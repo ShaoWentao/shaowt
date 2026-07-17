@@ -5,6 +5,89 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
     'use strict';
 
+    function injectChromaticityLayoutFix() {
+        if (typeof document === 'undefined' || document.getElementById('chromaticity-layout-fix')) return;
+        const style = document.createElement('style');
+        style.id = 'chromaticity-layout-fix';
+        style.textContent = `
+            .visualization-area {
+                min-width: 0;
+            }
+
+            .charts-row {
+                display: grid;
+                grid-template-columns: minmax(0, 1.65fr) minmax(340px, 0.85fr);
+                gap: 18px;
+                align-items: start;
+            }
+
+            .spd-panel,
+            .cie-panel {
+                min-width: 0;
+                padding: 18px;
+            }
+
+            .canvas-wrapper {
+                position: relative;
+                width: 100%;
+                overflow: hidden;
+            }
+
+            #canvas-wrapper {
+                height: clamp(320px, 42vw, 520px);
+            }
+
+            #cie-canvas-wrapper {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 1 / 1;
+                min-height: 0;
+                max-height: none;
+            }
+
+            #spd-canvas,
+            #cie-canvas {
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
+
+            .cie-panel {
+                align-self: start;
+            }
+
+            @media (max-width: 1100px) {
+                .charts-row {
+                    grid-template-columns: minmax(0, 1fr);
+                }
+
+                .cie-panel {
+                    width: 100%;
+                    max-width: 680px;
+                    justify-self: center;
+                }
+
+                #canvas-wrapper {
+                    height: clamp(300px, 56vw, 500px);
+                }
+            }
+
+            @media (max-width: 640px) {
+                .spd-panel,
+                .cie-panel {
+                    padding: 14px;
+                }
+
+                #canvas-wrapper {
+                    height: 300px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    injectChromaticityLayoutFix();
+
     function freezeScene(scene) {
         return Object.freeze(scene);
     }
