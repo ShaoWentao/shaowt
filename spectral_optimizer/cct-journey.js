@@ -91,6 +91,52 @@
                 height: 100%;
             }
 
+            .presets-toggle {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                padding: 0;
+                border: 0;
+                background: transparent;
+                color: var(--text-secondary);
+                font: inherit;
+                cursor: pointer;
+                text-align: left;
+            }
+
+            .presets-toggle strong {
+                color: var(--text-secondary);
+                font-size: 0.82rem;
+                font-weight: 600;
+            }
+
+            .presets-toggle strong span {
+                font-size: 0.72rem;
+                font-weight: 400;
+                color: var(--text-muted);
+                margin-left: 4px;
+            }
+
+            .presets-toggle-icon {
+                font-size: 0.9rem;
+                line-height: 1;
+                transition: transform 0.2s ease;
+            }
+
+            .presets-toggle[aria-expanded="true"] .presets-toggle-icon {
+                transform: rotate(180deg);
+            }
+
+            .presets-section .preset-buttons[hidden] {
+                display: none !important;
+            }
+
+            .presets-section .preset-buttons:not([hidden]) {
+                margin-top: 10px;
+            }
+
             @media (max-width: 1180px) {
                 .charts-row {
                     grid-template-columns: 1fr;
@@ -105,7 +151,39 @@
         document.head.appendChild(style);
     }
 
+    function initPresetCollapse() {
+        if (typeof document === 'undefined') return;
+        const section = document.querySelector('.presets-section');
+        const buttons = section && section.querySelector('.preset-buttons');
+        const heading = section && section.querySelector('h3');
+        if (!section || !buttons || !heading || section.querySelector('.presets-toggle')) return;
+
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'presets-toggle';
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-controls', 'preset-buttons');
+        toggle.innerHTML = '<strong>快速预设 <span>Presets</span></strong><span class="presets-toggle-icon" aria-hidden="true">⌄</span>';
+
+        buttons.id = 'preset-buttons';
+        buttons.hidden = true;
+        heading.replaceWith(toggle);
+
+        toggle.addEventListener('click', function () {
+            const expanded = toggle.getAttribute('aria-expanded') === 'true';
+            toggle.setAttribute('aria-expanded', String(!expanded));
+            buttons.hidden = expanded;
+        });
+    }
+
     injectLayoutFix();
+    if (typeof document !== 'undefined') {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initPresetCollapse, { once: true });
+        } else {
+            initPresetCollapse();
+        }
+    }
 
     function freezeScene(scene) {
         return Object.freeze(scene);
