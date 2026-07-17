@@ -5,10 +5,10 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
     'use strict';
 
-    function injectChromaticityLayoutFix() {
-        if (typeof document === 'undefined' || document.getElementById('chromaticity-layout-fix')) return;
+    function injectLayoutFix() {
+        if (typeof document === 'undefined' || document.getElementById('spectral-layout-fix')) return;
         const style = document.createElement('style');
-        style.id = 'chromaticity-layout-fix';
+        style.id = 'spectral-layout-fix';
         style.textContent = `
             html,
             body {
@@ -26,11 +26,20 @@
             }
 
             #app-main {
-                align-items: start;
                 height: auto;
                 min-height: 0;
                 max-height: none;
                 overflow: visible;
+                align-items: start;
+                grid-auto-rows: max-content;
+            }
+
+            .visualization-area {
+                height: auto;
+                min-height: 0;
+                max-height: none;
+                overflow: visible;
+                align-self: start;
             }
 
             .controls-panel {
@@ -41,51 +50,37 @@
                 align-self: start;
             }
 
-            .visualization-area {
+            .visualization-area,
+            .charts-row,
+            .spd-panel,
+            .cie-panel {
                 min-width: 0;
-                height: auto;
-                min-height: 0;
-                max-height: none;
-                overflow: visible;
-                align-self: start;
             }
 
             .charts-row {
                 display: grid;
-                grid-template-columns: minmax(0, 1.65fr) minmax(300px, 0.85fr);
+                grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr);
                 gap: 18px;
                 align-items: start;
+                grid-auto-rows: max-content;
             }
 
             .spd-panel,
             .cie-panel {
-                min-width: 0;
-                height: auto;
-                align-self: start;
-                padding: 18px;
                 overflow: hidden;
+                align-self: start;
+                height: auto;
             }
 
             .canvas-wrapper {
-                position: relative;
                 width: 100%;
                 min-width: 0;
-                overflow: hidden;
-            }
-
-            #canvas-wrapper {
-                width: 100%;
-                height: auto;
-                aspect-ratio: 16 / 10;
-                min-height: 0;
-                max-height: none;
             }
 
             #cie-canvas-wrapper {
                 width: 100%;
-                height: auto;
                 aspect-ratio: 1 / 1;
-                min-height: 0;
+                height: auto;
                 max-height: none;
             }
 
@@ -96,33 +91,21 @@
                 height: 100%;
             }
 
-            @media (max-width: 1100px) {
+            @media (max-width: 1180px) {
                 .charts-row {
-                    grid-template-columns: minmax(0, 1fr);
+                    grid-template-columns: 1fr;
                 }
 
                 .cie-panel {
-                    width: 100%;
-                    max-width: 680px;
+                    width: min(100%, 680px);
                     justify-self: center;
-                }
-            }
-
-            @media (max-width: 640px) {
-                .spd-panel,
-                .cie-panel {
-                    padding: 14px;
-                }
-
-                #canvas-wrapper {
-                    aspect-ratio: 16 / 10;
                 }
             }
         `;
         document.head.appendChild(style);
     }
 
-    injectChromaticityLayoutFix();
+    injectLayoutFix();
 
     function freezeScene(scene) {
         return Object.freeze(scene);
