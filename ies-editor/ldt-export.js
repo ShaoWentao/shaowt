@@ -37,7 +37,8 @@
     return {
       manufacturer: read(['MANUFAC']) || $('manufacturer')?.value || 'CDN',
       luminaire: read(['LUMINAIRE', 'LUMCAT', 'TEST']) || $('serial')?.value || 'luminaire',
-      date: read(['ISSUEDATE', 'TESTDATE']) || $('date')?.value || ''
+      date: read(['ISSUEDATE', 'TESTDATE']) || $('date')?.value || '',
+      cct: window.iesEditorReadCct(lines.join('\n'))
     };
   }
 
@@ -54,8 +55,8 @@
       .map(Number)
       .filter(Number.isFinite);
     if (tiltValue === 'INCLUDE') {
-      const tiltCount = Math.max(0, Math.round(nums[0] || 0));
-      nums = nums.slice(1 + tiltCount * 2);
+      const tiltCount = Math.max(0, Math.round(nums[1] || 0));
+      nums = nums.slice(2 + tiltCount * 2);
     }
     return nums;
   }
@@ -223,7 +224,7 @@
 
   function mm(value, unitsType) {
     const meter = unitsType === 1 ? value * 0.3048 : value;
-    return Math.max(0, Math.round(meter * 1000));
+    return Math.max(0, Math.round(Math.abs(meter) * 1000));
   }
 
   function makeCPlanes(data) {
@@ -247,7 +248,7 @@
     const l = mm(data.length || 0, data.unitsType);
     const b = mm(data.width || 0, data.unitsType);
     const h = mm(data.height || 0, data.unitsType);
-    const isCircular = $('surfaceShape')?.value === 'circular' || (l > 0 && b > 0 && Math.abs(l - b) <= 2);
+    const isCircular = data.width < 0 && (data.length === data.width || data.length === 0);
     const lengthOrDiameter = isCircular ? Math.max(l, b) : l;
     const widthOrZero = isCircular ? 0 : b;
     const name = data.keywords.luminaire || safeName(sourceName).replace(/\.ies$/i, '');
@@ -289,7 +290,7 @@
       '-1',
       'LED',
       fmt(flux, 1),
-      '',
+      data.keywords.cct ? `${data.keywords.cct} K` : '',
       '',
       fmt(data.power || 0, 2),
       '0 0 0 0 0 0 0 0 0 0',
@@ -313,7 +314,6 @@
       return;
     }
     try {
-      if (typeof window.iesGenerateOneDegree === 'function') window.iesGenerateOneDegree();
       const iesText = $('iesPreview')?.textContent || text;
       const data = parseIES(iesText);
       const ldt = buildLDT(data, $('fileName')?.textContent.trim() || 'luminaire.ies');

@@ -42,31 +42,6 @@
     }
   }
 
-  function syncDimensionsFromShape(dispatch = false) {
-    const shape = $('surfaceShape');
-    const rectangularFields = $('rectangularSurfaceFields');
-    const circularFields = $('circularSurfaceFields');
-    const diameter = $('diameter');
-    const length = $('length');
-    const width = $('width');
-    if (!shape) return;
-
-    const isCircular = shape.value === 'circular';
-    if (rectangularFields) rectangularFields.hidden = isCircular;
-    if (circularFields) circularFields.hidden = !isCircular;
-
-    if (isCircular && diameter && length && width) {
-      const d = Number(diameter.value);
-      const safeDiameter = Number.isFinite(d) && d > 0 ? d : 0.045;
-      length.value = String(safeDiameter);
-      width.value = String(safeDiameter);
-    }
-
-    if (dispatch && length) {
-      length.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-  }
-
   function loadScriptOnce(src, key) {
     if (document.querySelector(`script[data-${key}="true"]`)) return;
     const script = document.createElement('script');
@@ -102,21 +77,14 @@
   }
 
   function bind() {
-    const shape = $('surfaceShape');
-    const diameter = $('diameter');
-    if (shape) shape.addEventListener('change', () => syncDimensionsFromShape(true));
-    if (diameter) diameter.addEventListener('input', () => syncDimensionsFromShape(true));
     applyLanguage();
-    syncDimensionsFromShape(false);
     scheduleNoHomeFix();
-    loadScriptOnce('generator-1deg.js', 'generatorOneDegree');
     loadScriptOnce('ldt-export.js', 'ldtExport');
   }
 
   window.addEventListener('DOMContentLoaded', bind);
   window.addEventListener('ies-language-change', () => {
     applyLanguage();
-    syncDimensionsFromShape(false);
     scheduleNoHomeFix();
   });
 })();

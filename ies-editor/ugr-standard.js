@@ -22,8 +22,8 @@
       .map(Number)
       .filter(Number.isFinite);
     if (tiltValue === 'INCLUDE') {
-      const tiltCount = Math.max(0, Math.round(nums[0] || 0));
-      nums = nums.slice(1 + tiltCount * 2);
+      const tiltCount = Math.max(0, Math.round(nums[1] || 0));
+      nums = nums.slice(2 + tiltCount * 2);
     }
     let i = 0;
     const lampCount = nums[i++];

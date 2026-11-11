@@ -10,7 +10,7 @@
   const fields = {
     manufacturer: $('manufacturer'), serial: $('serial'), date: $('date'), ledCount: $('ledCount'),
     singleFlux: $('singleFlux'), beamAngle: $('beamAngle'), beamAngleC90: $('beamAngleC90'), efficiency: $('efficiency'), length: $('length'),
-    width: $('width'), height: $('height'), power: $('power'), notes: $('notes'), iesType: $('iesType'), distributionShape: $('distributionShape'), generationMode: $('generationMode')
+    width: $('width'), height: $('height'), cct: $('cct'), surfaceShape: $('surfaceShape'), diameter: $('diameter'), power: $('power'), notes: $('notes'), iesType: $('iesType'), distributionShape: $('distributionShape'), generationMode: $('generationMode')
   };
   const generatedVertical = Array.from({ length: 181 }, (_, i) => i);
   const simpleHorizontal = [0];
@@ -45,6 +45,27 @@
     return lines.join('\n');
   }
 
+  function readDimensions() {
+    const circular = fields.surfaceShape.value === 'circular';
+    const diameter = Math.max(0, num(fields.diameter.value, 0));
+    return {
+      width: circular ? -diameter : Math.max(0, num(fields.width.value, 0)),
+      length: circular ? -diameter : Math.max(0, num(fields.length.value, 0)),
+      height: Math.max(0, num(fields.height.value, 0))
+    };
+  }
+
+  function syncSurfaceShapeUI() {
+    const circular = fields.surfaceShape.value === 'circular';
+    $('rectangularSurfaceFields').hidden = circular;
+    $('circularSurfaceFields').hidden = !circular;
+  }
+
+  function readFormCct() {
+    const value = Number(fields.cct.value);
+    return Number.isSafeInteger(value) && value > 0 ? value : '';
+  }
+
   function getFormData() {
     return {
       manufacturer: fields.manufacturer.value.trim() || 'CDN',
@@ -55,9 +76,8 @@
       beamAngle: Math.min(120, Math.max(0.01, num(fields.beamAngle.value, 36))),
       beamAngleC90: Math.min(120, Math.max(0.01, num(fields.beamAngleC90?.value, num(fields.beamAngle.value, 36)))),
       efficiency: Math.min(1, Math.max(0.01, num(fields.efficiency.value, 1))),
-      length: Math.max(0, num(fields.length.value, 0.1)),
-      width: Math.max(0, num(fields.width.value, 0.1)),
-      height: Math.max(0, num(fields.height.value, 0.1)),
+      ...readDimensions(),
+      cct: readFormCct(),
       power: Math.max(0.01, num(fields.power.value, 10)),
       generationMode: fields.generationMode?.value || 'simple',
       symmetryMode: fields.iesType?.value || 'symmetric',
@@ -165,28 +185,36 @@
     return unique.sort((a, b) => a.angle - b.angle);
   }
 
-  function interpolateKeyRows(rows, angle, key) {
-    if (angle <= rows[0].angle) return rows[0][key];
-    for (let i = 0; i < rows.length - 1; i += 1) {
-      const a = rows[i];
-      const b = rows[i + 1];
-      if (angle <= b.angle) {
-        const span = Math.max(0.0001, b.angle - a.angle);
-        const t = (angle - a.angle) / span;
-        const start = Math.max(0, a[key]);
-        const end = Math.max(0, b[key]);
-        if (start > 0 && end > 0) return Math.exp(Math.log(start) + (Math.log(end) - Math.log(start)) * t);
-        return start + (end - start) * t;
-      }
-    }
-    return rows[rows.length - 1][key];
-  }
-
   function smoothAdvancedProfile(rows, key) {
-    const source = rows.map((row) => ({ angle: row.angle, value: row[key] }));
-    const smoothed = interpolateCurvePoints(source, 1);
-    const byAngle = new Map(smoothed.map((point) => [Math.round(point.angle * 1000) / 1000, point.value]));
-    return generatedVertical.map((angle) => byAngle.get(angle) ?? interpolateKeyRows(rows, angle, key));
+    const source = rows.map((row) => ({ angle: row.angle, value: Math.max(0, row[key]) }));
+    const xs = source.map((point) => point.angle);
+    const ys = source.map((point) => point.value);
+    const slopes = [];
+    const deltas = [];
+    for (let i = 0; i < xs.length - 1; i += 1) {
+      const dx = xs[i + 1] - xs[i];
+      deltas[i] = dx ? (ys[i + 1] - ys[i]) / dx : 0;
+    }
+    slopes[0] = deltas[0] || 0;
+    slopes[xs.length - 1] = deltas[deltas.length - 1] || 0;
+    for (let i = 1; i < xs.length - 1; i += 1) {
+      slopes[i] = deltas[i - 1] * deltas[i] <= 0 ? 0 : (deltas[i - 1] + deltas[i]) / 2;
+    }
+    return generatedVertical.map((angle) => {
+      if (angle <= xs[0]) return ys[0];
+      for (let i = 0; i < xs.length - 1; i += 1) {
+        if (angle <= xs[i + 1]) {
+          const span = Math.max(0.0001, xs[i + 1] - xs[i]);
+          const t = (angle - xs[i]) / span;
+          const h00 = 2 * t * t * t - 3 * t * t + 1;
+          const h10 = t * t * t - 2 * t * t + t;
+          const h01 = -2 * t * t * t + 3 * t * t;
+          const h11 = t * t * t - t * t;
+          return Math.max(0, h00 * ys[i] + h10 * span * slopes[i] + h01 * ys[i + 1] + h11 * span * slopes[i + 1]);
+        }
+      }
+      return ys[ys.length - 1];
+    });
   }
 
   function buildAdvancedCandela() {
@@ -226,10 +254,11 @@
       `[LUMINAIRE] ${data.serial}`,
       '[LAMPCAT] LED',
       `[LAMP] ${data.ledCount} LED, ${fmt(data.singleFlux, 2)} lm each`,
+      ...(data.cct ? [`[CCT] ${data.cct} K`] : []),
       `[MORE] ${data.notes || 'Generated by CDN IES Editor.'}`,
       `[MORE] Generation mode: ${photometry.modeLabel}`,
       'TILT=NONE',
-      [data.ledCount, fmt(data.singleFlux * data.efficiency, 4), 1, photometry.verticalAngles.length, photometry.horizontalAngles.length, 1, 2, fmt(data.width, 4), fmt(data.length, 4), fmt(data.height, 4)].join(' '),
+      [data.ledCount, fmt(data.singleFlux, 4), 1, photometry.verticalAngles.length, photometry.horizontalAngles.length, 1, 2, fmt(data.width, 6), fmt(data.length, 6), fmt(data.height, 6)].join(' '),
       `1 1 ${fmt(data.power, 4)}`,
       wrapNumbers(photometry.verticalAngles.map((angle) => fmt(angle, 2))),
       wrapNumbers(photometry.horizontalAngles.map((angle) => fmt(angle, 2))),
@@ -255,6 +284,21 @@
     return new TextDecoder('utf-8').decode(buffer);
   }
 
+  function readCct(lines) {
+    const tiltIndex = lines.findIndex((line) => /^\s*TILT\s*=/i.test(line));
+    const header = tiltIndex === -1 ? lines : lines.slice(0, tiltIndex);
+    const explicit = header.find((line) => /^\s*\[CCT\]/i.test(line));
+    if (explicit !== undefined) {
+      return explicit.match(/^\s*\[CCT\]\s*(\d+)\s*K?\s*$/i)?.[1] || '';
+    }
+    for (const line of header) {
+      if (!/^\s*\[(?:LAMP|LAMPCAT|LUMINAIRE|LUMCAT)\]/i.test(line)) continue;
+      const cct = line.match(/\b(\d{3,5})\s*K\b/i);
+      if (cct) return cct[1];
+    }
+    return '';
+  }
+
   function parseKeywords(lines) {
     const read = (names) => {
       for (const line of lines) {
@@ -270,33 +314,56 @@
     return {
       manufacturer: read(['MANUFAC']),
       serial: read(['LUMINAIRE', 'LUMCAT', 'TEST']),
-      date: read(['ISSUEDATE', 'TESTDATE'])
+      date: read(['ISSUEDATE', 'TESTDATE']),
+      cct: readCct(lines)
     };
   }
 
-  function tokenizePhotometricBody(text) {
-    const lines = text.replace(/\r/g, '').split('\n');
-    const tiltIndex = lines.findIndex((line) => /^\s*TILT\s*=/i.test(line));
-    if (tiltIndex < 0) throw new Error('TILT line not found.');
-    const tiltValue = lines[tiltIndex].split('=').slice(1).join('=').trim().toUpperCase();
-    let nums = lines.slice(tiltIndex + 1).join(' ')
-      .replace(/\[[^\]]+\][^\r\n]*/g, ' ')
-      .replace(/,/g, ' ')
-      .split(/\s+/)
-      .filter(Boolean)
-      .map(Number)
-      .filter(Number.isFinite);
-    if (tiltValue === 'INCLUDE') {
-      const tiltCount = Math.max(0, Math.round(nums[0] || 0));
-      nums = nums.slice(1 + tiltCount * 2);
+  function photometricBody(text) {
+    const tilt = text.match(/^[ \t]*TILT[ \t]*=([^\n]*)\n/im);
+    if (!tilt) throw new Error('TILT line not found.');
+    const start = tilt.index + tilt[0].length;
+    const body = text.slice(start).replace(/\[[^\]\n]+\][^\n]*/g, (line) => ' '.repeat(line.length));
+    const tokens = [...body.matchAll(/[^\s,]+/g)]
+      .filter((token) => Number.isFinite(Number(token[0])));
+    // Embedded tilt data begins with lamp geometry, followed by the angle count.
+    const offset = tilt[1].trim().toUpperCase() === 'INCLUDE' ? 2 + 2 * Number(tokens[1]?.[0]) : 0;
+    return { start, tokens: tokens.slice(offset) };
+  }
+
+  function editUploadedIES(source, target) {
+    let text = source.text;
+    if (target === fields.cct) {
+      const cct = readFormCct();
+      const lines = text.split('\n');
+      const tiltIndex = lines.findIndex((line) => /^\s*TILT\s*=/i.test(line));
+      const header = lines.slice(0, tiltIndex).filter((line) => !/^\s*\[CCT\]/i.test(line));
+      // An empty CCT clears a temperature inherited from lamp/model text.
+      header.push(cct ? `[CCT] ${cct} K` : '[CCT]');
+      text = [...header, ...lines.slice(tiltIndex)].join('\n');
+    } else {
+      const { start, tokens } = photometricBody(text);
+      const dimensions = readDimensions();
+      const unitScale = source.unitsType === 1 ? 0.3048 : 1;
+      const edits = target === fields.surfaceShape || target === fields.diameter
+        ? ['length', 'width']
+        : [target.id];
+      for (const dimension of edits) {
+        const index = { width: 7, length: 8, height: 9 }[dimension];
+        const token = tokens[index];
+        const position = start + token.index;
+        const sign = edits.length === 1 && source[dimension] < 0 ? -1 : 1;
+        const value = sign * dimensions[dimension] / unitScale;
+        text = text.slice(0, position) + fmt(value, 8) + text.slice(position + token[0].length);
+      }
     }
-    return nums;
+    return parseIES(text, source.fileName);
   }
 
   function parseIES(text, fileName = 'uploaded.ies') {
     const normalized = text.replace(/\r/g, '');
     const lines = normalized.split('\n');
-    const nums = tokenizePhotometricBody(normalized);
+    const nums = photometricBody(normalized).tokens.map((token) => Number(token[0]));
     if (nums.length < 13) throw new Error('IES photometric data is incomplete.');
     let i = 0;
     const lampCount = nums[i++];
@@ -774,6 +841,7 @@
     const beam = beamAngleFromPoints(curvesOf(data)[0]?.points || []);
     $('reportFileName').textContent = data.fileName || `${safeName(data.keywords.manufacturer || 'CDN')}-${safeName(data.keywords.serial || 'generated')}.ies`;
     $('reportDescription').textContent = reportDescription(data);
+    const unitScale = data.unitsType === 1 ? 0.3048 : 1;
     $('reportCharacteristics').innerHTML = tableRows([
       ['Lumens Per Lamp', `${fmt(data.lumensPerLamp, 2)} (${fmt(data.lampCount, 0)} lamp)`],
       ['Total Lamp Lumens', fmt(lampLumens, 2)],
@@ -784,9 +852,9 @@
       ['Photometric Type', typeName(data.photometricType)],
       ['Beam Angle (FWHM)', `${fmt(beam, 2)}°`],
       ['Maximum Candela', `${fmt(peak.value, 1)} cd @ H${fmt(peak.hAngle, 1)} / V${fmt(peak.vAngle, 1)}`],
-      ['Luminous Length', `${fmt(data.length, 4)} m`],
-      ['Luminous Width', `${fmt(data.width, 4)} m`],
-      ['Luminous Height', `${fmt(data.height, 4)} m`]
+      ['Luminous Length', `${fmt(Math.abs(data.length) * unitScale, 6)} m`],
+      ['Luminous Width', `${fmt(Math.abs(data.width) * unitScale, 6)} m`],
+      ['Luminous Height', `${fmt(Math.abs(data.height) * unitScale, 6)} m`]
     ]);
     $('reportCandela').innerHTML = candelaTable(data);
     $('reportZonal').innerHTML = zonalTable(data);
@@ -803,9 +871,14 @@
     fields.ledCount.value = String(Math.max(1, Math.round(data.lampCount || 1)));
     fields.singleFlux.value = fmt(data.lumensPerLamp || 0, 3);
     fields.efficiency.value = data.lumensPerLamp > 0 ? fmt(fluxOf(data) / Math.max(0.001, data.lampCount * data.lumensPerLamp), 3) : '1';
-    fields.length.value = fmt(data.length || 0, 4);
-    fields.width.value = fmt(data.width || 0, 4);
-    fields.height.value = fmt(data.height || 0, 4);
+    const unitScale = data.unitsType === 1 ? 0.3048 : 1;
+    fields.length.value = fmt(Math.abs(data.length) * unitScale, 6);
+    fields.width.value = fmt(Math.abs(data.width) * unitScale, 6);
+    fields.height.value = fmt(Math.abs(data.height) * unitScale, 6);
+    fields.surfaceShape.value = data.width < 0 && (data.length === data.width || data.length === 0) ? 'circular' : 'rectangular';
+    fields.diameter.value = fields.surfaceShape.value === 'circular' ? fields.width.value : '0.045';
+    fields.cct.value = data.keywords.cct;
+    syncSurfaceShapeUI();
     fields.power.value = fmt(data.power || 0, 4);
     fields.beamAngle.value = fmt(beamAngleFromPoints(curvesOf(data)[0]?.points || []), 2);
     if (fields.beamAngleC90) fields.beamAngleC90.value = fmt(beamAngleFromPoints(curvesOf(data)[1]?.points || curvesOf(data)[0]?.points || []), 2);
@@ -825,7 +898,7 @@
   }
 
   function downloadCurrentIES() {
-    const data = uploaded || current || makeGeneratedParsed();
+    const data = current;
     const blob = new Blob([data.text], { type: 'text/plain;charset=utf-8' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -837,8 +910,7 @@
   }
 
   function sendToInteriorCalculator() {
-    if (!uploaded) updateGeneratedPreview();
-    const data = uploaded || current || makeGeneratedParsed();
+    const data = current;
     const fileName = data.fileName || `${safeName(fields.manufacturer.value || 'CDN')}-${safeName(fields.serial.value || 'spot01')}.ies`;
     const payload = {
       fileName,
@@ -855,6 +927,11 @@
 
   function resetFields() {
     uploaded = null;
+    $('upload').value = '';
+    fields.cct.value = '';
+    fields.surfaceShape.value = 'rectangular';
+    fields.diameter.value = '0.045';
+    syncSurfaceShapeUI();
     fields.manufacturer.value = 'CDN'; fields.serial.value = 'Downlight'; fields.date.value = '20260626'; fields.ledCount.value = '1';
     fields.singleFlux.value = '1000'; fields.beamAngle.value = '36'; if (fields.beamAngleC90) fields.beamAngleC90.value = '36'; fields.efficiency.value = '1'; fields.length.value = '0.1';
     fields.width.value = '0.1'; fields.height.value = '0.1'; fields.power.value = '10'; fields.notes.value = 'Generated by CDN IES Editor.';
@@ -886,18 +963,28 @@
     syncIesTypeUI();
   }
 
-  form.addEventListener('input', (event) => {
-    if (!event.target.closest('#advancedRows') && event.target !== fields.generationMode && (fields.generationMode?.value || 'simple') !== 'advanced') advancedPopulated = false;
-    uploaded = null; hideReport(); updateGeneratedPreview();
-  });
-  form.addEventListener('change', (event) => {
-    if (event.target === fields.generationMode && fields.generationMode.value === 'advanced') populateAdvancedRowsFromSimple();
-    if (event.target === fields.iesType) syncIesTypeUI();
-    uploaded = null; hideReport(); updateGeneratedPreview();
-  });
+  function applyFormEdit(event) {
+    const target = event.target;
+    const metadataFields = [fields.surfaceShape, fields.diameter, fields.width, fields.length, fields.height, fields.cct];
+    if (target === fields.surfaceShape) syncSurfaceShapeUI();
+    hideReport();
+    if (uploaded && metadataFields.includes(target)) {
+      uploaded = editUploadedIES(uploaded, target);
+      current = uploaded;
+      preview.textContent = current.text;
+      updateStats(current);
+      return;
+    }
+    if (target === fields.generationMode && target.value === 'advanced') populateAdvancedRowsFromSimple();
+    if (!target.closest('#advancedRows') && fields.generationMode.value !== 'advanced') advancedPopulated = false;
+    uploaded = null;
+    updateGeneratedPreview();
+  }
+
+  form.addEventListener('input', applyFormEdit);
   $('downloadBtn').addEventListener('click', downloadCurrentIES);
   $('calcBtn').addEventListener('click', sendToInteriorCalculator);
-  $('reportBtn').addEventListener('click', () => { if (!uploaded) updateGeneratedPreview(); buildReport(uploaded || current); });
+  $('reportBtn').addEventListener('click', () => buildReport(current));
   $('copyBtn').addEventListener('click', () => navigator.clipboard.writeText(preview.textContent));
   $('resetBtn').addEventListener('click', resetFields);
   $('upload').addEventListener('change', (event) => {
@@ -905,6 +992,7 @@
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
+      if (event.target.files?.[0] !== file) return;
       try {
         uploaded = parseIES(decodeIESBuffer(reader.result), file.name);
         current = uploaded;
@@ -915,6 +1003,7 @@
         $('fileName').textContent = file.name;
         updateStats(uploaded);
         buildReport(uploaded);
+        window.dispatchEvent(new Event('ies-file-loaded'));
       } catch (error) {
         fields.notes.value = `Read failed: ${error.message || error}`;
       }
@@ -922,6 +1011,8 @@
     reader.readAsArrayBuffer(file);
   });
   window.addEventListener('resize', () => { if (current) updateStats(current); if (!report.classList.contains('hidden') && (uploaded || current)) drawPolar(reportPolar, reportCtx, uploaded || current, 'POLAR GRAPH', 'Photometric report graph', 'Resized', false); });
+  window.iesEditorReadCct = (text) => readCct(text.split(/\r?\n/));
+  syncSurfaceShapeUI();
   syncGenerationModeUI();
   updateGeneratedPreview();
   hideReport();

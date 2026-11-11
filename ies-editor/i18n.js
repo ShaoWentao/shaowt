@@ -46,6 +46,7 @@
       width: 'Width of luminous surface (m)',
       diameter: 'Diameter of luminous surface (m)',
       height: 'Height of luminous surface (m)',
+      cct: 'Correlated color temperature (K)',
       notes: 'Description / keywords',
       download: 'Download IES',
       sendCalculator: 'Send to Illuminance Calculator',
@@ -104,6 +105,7 @@
       width: '发光面宽度 (m)',
       diameter: '发光面直径 (m)',
       height: '发光面高度 (m)',
+      cct: '相关色温（K）',
       notes: '描述 / 关键词',
       download: '下载 IES',
       copy: '复制文本',
@@ -208,6 +210,7 @@
     setLabel('width', t(finalLang, 'width'));
     setLabel('diameter', t(finalLang, 'diameter'));
     setLabel('height', t(finalLang, 'height'));
+    setLabel('cct', t(finalLang, 'cct'));
     setLabel('notes', t(finalLang, 'notes'));
     setLabel('upload', t(finalLang, 'upload'));
 
